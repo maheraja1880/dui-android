@@ -4,6 +4,7 @@ plugins {
     id("kotlin-kapt") // Ensure kapt plugin is applied
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
 
 
 }
@@ -50,7 +51,20 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("io.ktor:ktor-client-core:3.2.3")
+    implementation("io.ktor:ktor-client-cio:3.2.3")
+    implementation("io.ktor:ktor-client-content-negotiation:3.2.3")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.3")
+
     implementation(libs.hilt.android) // Hilt dependency
     add("kapt", libs.hilt.compiler) // Correct kapt syntax for Kotlin DSL
 //    ksp(libs.hilt.compiler) // Only needed if using KSP
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+
+    // Test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("io.ktor:ktor-client-mock:3.2.3")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.24")
+
 }

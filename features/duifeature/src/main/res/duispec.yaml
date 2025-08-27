@@ -1,0 +1,62 @@
+openapi: 3.0.3
+info:
+  title: Dynamic UI API
+  version: 1.0.0
+paths:
+  /dynamic-ui/screen:
+    get:
+      summary: Get Dynamic UI Screen
+      responses:
+        '200':
+          description: Dynamic UI Screen JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Component'
+components:
+  schemas:
+    Component:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        properties:
+          type: object
+          additionalProperties: true
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/Component'
+        onInteraction:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interaction'
+      required:
+        - id
+        - type
+        - properties
+    Interaction:
+      type: object
+      properties:
+        event:
+          type: string
+        action:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+      required:
+        - event
+        - action
+    Action:
+      type: object
+      properties:
+        type:
+          type: string
+        properties:
+          type: object
+          additionalProperties: true
+      required:
+        - type
+        - properties

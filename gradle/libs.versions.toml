@@ -8,7 +8,7 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2025.08.00"
-hilt = "2.51.1" # Or the latest stable Hilt version
+hilt = "2.57" # Or the latest stable Hilt version
 ksp = "2.2.10-2.0.2" # KSP version aligned with Kotlin version
 
 
