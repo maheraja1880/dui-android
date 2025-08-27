@@ -49,11 +49,7 @@ class DynamicRepositoryImplTest {
             }
         }
 
-        val repo = object : DynamicRepositoryImpl("http://test") {
-            override suspend fun fetchLayout(layoutId: String): Component {
-                return client.get("/dynamic-ui/screen").body()
-            }
-        }
+        val repo = DynamicRepositoryImpl("http://test", client)
 
         val component = repo.fetchLayout("dummyId")
 
@@ -104,11 +100,7 @@ class DynamicRepositoryImplTest {
             }
         }
 
-        val repo = object : DynamicRepositoryImpl("http://test") {
-            override suspend fun fetchLayout(layoutId: String): Component {
-                return client.get("/dynamic-ui/screen").body()
-            }
-        }
+        val repo = DynamicRepositoryImpl("http://test", client)
 
         val component = repo.fetchLayout("dummyId")
 
