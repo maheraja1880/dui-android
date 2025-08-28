@@ -10,8 +10,11 @@ import dagger.hilt.android.AndroidEntryPoint
 class DUIActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val layoutId = intent?.data?.lastPathSegment ?: "home"
+
         setContent {
-            DynamicUIScreen(layoutId = "home")
+            DynamicUIScreen(layoutId = layoutId)
         }
     }
 }

@@ -32,6 +32,7 @@ class DynamicViewModel @Inject constructor(
         when (intent) {
             is DynamicUiIntent.LoadLayout -> loadLayout(intent.layoutId, push = true)
             is DynamicUiIntent.Interaction -> handleInteraction(intent.componentId, intent.event)
+            is DynamicUiIntent.DeepLink -> deepLink(intent.layoutId)
             DynamicUiIntent.Back -> navigateBack()
         }
     }
@@ -55,6 +56,12 @@ class DynamicViewModel @Inject constructor(
             val prev = backStack.peek()
             loadLayout(prev, push = false)
         }
+    }
+
+    private fun deepLink(layoutId: String) {
+        // Clear stack and start fresh from deep link
+        backStack.clear()
+        loadLayout(layoutId, push = true)
     }
 
     private fun handleInteraction(componentId: String, event: String) {

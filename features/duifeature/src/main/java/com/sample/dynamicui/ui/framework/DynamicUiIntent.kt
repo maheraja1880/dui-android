@@ -5,4 +5,5 @@ sealed class DynamicUiIntent {
     //object Refresh : DynamicUiIntent()
     data class Interaction(val componentId: String, val event: String) : DynamicUiIntent()
     object Back : DynamicUiIntent()
+    data class DeepLink(val layoutId: String) : DynamicUiIntent()
 }

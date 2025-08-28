@@ -73,9 +73,9 @@ fun DynamicUIScreen(
         }
     }
 
-    // Trigger initial load if needed
+    // Initial load (deep link aware)
     LaunchedEffect(layoutId) {
-        vm.handleIntent(DynamicUiIntent.LoadLayout(layoutId))
+        vm.handleIntent(DynamicUiIntent.DeepLink(layoutId))
     }
 }
 
