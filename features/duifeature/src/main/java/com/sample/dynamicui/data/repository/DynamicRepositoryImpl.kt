@@ -21,37 +21,66 @@ class DynamicRepositoryImpl(
     fun mockLayout(layoutId: String): Component {
         val layoutJsonMap = mapOf(
             "home" to
-                    """{
-                          "id": "root",
-                          "type": "container",
-                          "properties": { "background": "white" },
-                          "children": [
-                            { "id": "title", "type": "text", "properties": { "text": "Hello World" } },
-                            { "id": "button1", "type": "button", "properties": { "text": "Click Me" } }
+                    """
+                    {
+                      "id": "home-component",
+                      "type": "container",
+                      "properties": {
+                        "background": "white"
+                      },
+                      "children": [
+                        {
+                          "id": "title",
+                          "type": "text",
+                          "properties": {
+                            "text": "Hello World 1"
+                          }
+                        },
+                        {
+                          "id": "button1",
+                          "type": "button",
+                          "properties": {
+                            "text": "Click Me"
+                          },
+                          "onInteraction": [
+                            {
+                              "event": "onClick",
+                              "action": [
+                                {
+                                  "type": "navigate",
+                                  "properties": {
+                                    "target": "profile"
+                                  }
+                                }
+                              ]
+                            }
                           ]
-                        }""",
+                        }
+                      ]
+                    } 
+                    """.trimIndent(),
             "profile" to
                     """
-                        {
-                  "id": "root",
-                  "type": "container",
-                  "properties": { "background": "white" },
-                  "children": [
-                    { "id": "title", "type": "text", "properties": { "text": "Hello World" } },
-                    { "id": "button1", "type": "button", "properties": { "text": "Click Me" } }
-                  ],
-                  "onInteraction": [
                     {
-                      "event": "onClick",
-                      "action": [
+                      "id": "profile-component",
+                      "type": "container",
+                      "properties": { "background": "white" },
+                      "children": [
+                        { "id": "title", "type": "text", "properties": { "text": "Hello World 2" } },
+                        { "id": "button1", "type": "button", "properties": { "text": "Click Me" } }
+                      ],
+                      "onInteraction": [
                         {
-                          "type": "navigate",
-                          "properties": { "target": "nextScreen" }
+                          "event": "onClick",
+                          "action": [
+                            {
+                              "type": "navigate",
+                              "properties": { "target": "nextScreen" }
+                            }
+                          ]
                         }
                       ]
                     }
-                  ]
-                }
                 """.trimIndent()
         )
         val jsonString = layoutJsonMap[layoutId]

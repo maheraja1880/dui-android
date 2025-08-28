@@ -3,6 +3,7 @@ package com.sample.dynamicui.ui.framework
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.dynamicui.domain.model.Action
+import com.sample.dynamicui.domain.model.AnySerializable
 import com.sample.dynamicui.domain.model.Component
 import com.sample.dynamicui.domain.repository.DynamicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -63,7 +64,7 @@ class DynamicViewModel @Inject constructor(
         viewModelScope.launch {
             when (action.type) {
                 "navigate" -> {
-                    val target = action.properties["target"] ?: return@launch
+                    val target = action.properties["target"]?.asString() ?: return@launch
                     // Instead of NavController directly, we trigger effect
                     _effect.send(DynamicUiEffect.Navigate(target.toString()))
                 }

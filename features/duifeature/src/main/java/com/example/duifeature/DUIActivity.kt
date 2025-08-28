@@ -11,7 +11,7 @@ class DUIActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DynamicUIScreen(layoutId = "firstScreen")
+            DynamicUIScreen(layoutId = "home")
         }
     }
 }

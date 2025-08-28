@@ -1,5 +1,6 @@
 package com.sample.dynamicui.ui.framework
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,7 @@ fun DynamicUIScreen(
 
 @Composable
 fun DynamicComponent(component: Component, vm: DynamicViewModel) {
+    Log.d("DynamicComponent", "Rendering component: ${component.id}")
     when (component.type) {
         "text" -> Text(
             text = component.properties["text"] ?.asString()?: "EMPTY TEXT",
