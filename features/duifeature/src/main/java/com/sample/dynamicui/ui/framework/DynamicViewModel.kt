@@ -3,8 +3,8 @@ package com.sample.dynamicui.ui.framework
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.dynamicui.domain.model.Action
-import com.sample.dynamicui.domain.model.AnySerializable
 import com.sample.dynamicui.domain.model.Component
+import com.sample.dynamicui.domain.model.Interaction
 import com.sample.dynamicui.domain.repository.DynamicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -31,7 +31,7 @@ class DynamicViewModel @Inject constructor(
     fun handleIntent(intent: DynamicUiIntent) {
         when (intent) {
             is DynamicUiIntent.LoadLayout -> loadLayout(intent.layoutId, push = true)
-            is DynamicUiIntent.Interaction -> handleInteraction(intent.componentId, intent.event)
+            is DynamicUiIntent.Interaction -> handleInteraction(intent.componentId, intent.event, intent.interactions)
             is DynamicUiIntent.DeepLink -> deepLink(intent.layoutId)
             DynamicUiIntent.Back -> navigateBack()
         }
@@ -64,22 +64,15 @@ class DynamicViewModel @Inject constructor(
         loadLayout(layoutId, push = true)
     }
 
-    private fun handleInteraction(componentId: String, event: String) {
-        val current = _state.value
-        if (current is DynamicUiState.Success) {
-            val actions = findActions(current.component, componentId, event)
-            actions.forEach { executeAction(it) }
-        }
+    private fun handleInteraction(
+        componentId: String,
+        event: String,
+        interactions: List<Interaction>
+    ) {
+        val matching = interactions.find { it.event == event }
+        val actions = matching?.action ?: emptyList()
+        actions.forEach { executeAction(it) }
     }
-
-    private fun findActions(component: Component, componentId: String, event: String): List<Action> {
-        if (component.id == componentId) {
-            val interaction = component.onInteraction.find { it.event == event }
-            if (interaction != null) return interaction.action
-        }
-        return component.children.flatMap { findActions(it, componentId, event) }
-    }
-
     private fun executeAction(action: Action) {
         viewModelScope.launch {
             when (action.type) {
