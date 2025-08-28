@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.duifeature.DUIActivity
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,6 +26,11 @@ class MainActivity : ComponentActivity() {
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
                     )
+                    startActivity(Intent(this@MainActivity, DUIActivity::class.java)
+                        .apply {
+                            //putExtra("path", "shop/smartlink/pdp")
+                        })
+
                 }
             }
         }
