@@ -14,6 +14,48 @@ class DynamicRepositoryImpl(
 
     override suspend fun fetchLayout(layoutId: String): Component {
         // Pass layoutId as path param
-        return httpClient.get("${baseUrl}/dynamic-ui/screen/${layoutId}").body()
+        //return httpClient.get("${baseUrl}/dynamic-ui/screen/${layoutId}").body()
+        return mockLayout(layoutId)
+    }
+
+    fun mockLayout(layoutId: String): Component {
+        val layoutJsonMap = mapOf(
+            "home" to
+                    """{
+                          "id": "root",
+                          "type": "container",
+                          "properties": { "background": "white" },
+                          "children": [
+                            { "id": "title", "type": "text", "properties": { "text": "Hello World" } },
+                            { "id": "button1", "type": "button", "properties": { "text": "Click Me" } }
+                          ]
+                        }""",
+            "profile" to
+                    """
+                        {
+                  "id": "root",
+                  "type": "container",
+                  "properties": { "background": "white" },
+                  "children": [
+                    { "id": "title", "type": "text", "properties": { "text": "Hello World" } },
+                    { "id": "button1", "type": "button", "properties": { "text": "Click Me" } }
+                  ],
+                  "onInteraction": [
+                    {
+                      "event": "onClick",
+                      "action": [
+                        {
+                          "type": "navigate",
+                          "properties": { "target": "nextScreen" }
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """.trimIndent()
+        )
+        val jsonString = layoutJsonMap[layoutId]
+            ?: throw IllegalArgumentException("No mock layout found for id: $layoutId")
+        return kotlinx.serialization.json.Json.decodeFromString(Component.serializer(), jsonString)
     }
 }

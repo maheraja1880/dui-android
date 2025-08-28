@@ -88,5 +88,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlin.metadata.jvm)
 
+    implementation("io.ktor:ktor-client-mock:3.2.3")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+
 
 }

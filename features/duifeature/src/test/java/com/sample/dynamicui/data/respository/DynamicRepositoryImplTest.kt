@@ -51,7 +51,7 @@ class DynamicRepositoryImplTest {
 
         val repo = DynamicRepositoryImpl("http://test", client)
 
-        val component = repo.fetchLayout("dummyId")
+        val component = repo.fetchLayout("home")
 
         assertEquals("root", component.id)
         assertEquals("container", component.type)
@@ -102,7 +102,7 @@ class DynamicRepositoryImplTest {
 
         val repo = DynamicRepositoryImpl("http://test", client)
 
-        val component = repo.fetchLayout("dummyId")
+        val component = repo.fetchLayout("profile")
 
         // Root validation
         assertEquals("root", component.id)
