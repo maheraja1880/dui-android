@@ -64,23 +64,39 @@ class DynamicRepositoryImpl(
                     {
                       "id": "profile-component",
                       "type": "container",
-                      "properties": { "background": "white" },
+                      "properties": {
+                        "background": "white"
+                      },
                       "children": [
-                        { "id": "title", "type": "text", "properties": { "text": "Hello World 2" } },
-                        { "id": "button1", "type": "button", "properties": { "text": "Click Me" } }
-                      ],
-                      "onInteraction": [
                         {
-                          "event": "onClick",
-                          "action": [
+                          "id": "title",
+                          "type": "text",
+                          "properties": {
+                            "text": "Hello World 2"
+                          }
+                        },
+                        {
+                          "id": "button1",
+                          "type": "button",
+                          "properties": {
+                            "text": "Click Me"
+                          },
+                          "onInteraction": [
                             {
-                              "type": "navigate",
-                              "properties": { "target": "nextScreen" }
+                              "event": "onClick",
+                              "action": [
+                                {
+                                  "type": "navigate",
+                                  "properties": {
+                                    "target": "home"
+                                  }
+                                }
+                              ]
                             }
                           ]
                         }
                       ]
-                    }
+                    } 
                 """.trimIndent()
         )
         val jsonString = layoutJsonMap[layoutId]

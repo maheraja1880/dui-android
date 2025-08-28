@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.util.Stack
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,22 +26,34 @@ class DynamicViewModel @Inject constructor(
     private val _effect = Channel<DynamicUiEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
 
+    private val backStack: Stack<String> = Stack()
+
     fun handleIntent(intent: DynamicUiIntent) {
         when (intent) {
-            is DynamicUiIntent.LoadLayout -> loadLayout(intent.layoutId)
+            is DynamicUiIntent.LoadLayout -> loadLayout(intent.layoutId, push = true)
             is DynamicUiIntent.Interaction -> handleInteraction(intent.componentId, intent.event)
+            DynamicUiIntent.Back -> navigateBack()
         }
     }
 
-    private fun loadLayout(layoutId: String) {
+    private fun loadLayout(layoutId: String, push: Boolean) {
         _state.value = DynamicUiState.Loading
         viewModelScope.launch {
             try {
                 val component = repository.fetchLayout(layoutId)
-                _state.value = DynamicUiState.Success(component)
+                if (push) backStack.push(layoutId)
+                _state.value = DynamicUiState.Success(component, canGoBack = backStack.size > 1)
             } catch (e: Exception) {
                 _state.value = DynamicUiState.Error(e.message ?: "Unknown error")
             }
+        }
+    }
+
+    private fun navigateBack() {
+        if (backStack.size > 1) {
+            backStack.pop() // remove current
+            val prev = backStack.peek()
+            loadLayout(prev, push = false)
         }
     }
 
