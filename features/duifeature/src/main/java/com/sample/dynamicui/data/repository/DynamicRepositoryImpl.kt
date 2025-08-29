@@ -1,5 +1,6 @@
 package com.sample.dynamicui.data.repository
 
+import android.util.Log
 import com.sample.dynamicui.data.remote.ApiClient
 import com.sample.dynamicui.domain.model.Component
 import com.sample.dynamicui.domain.repository.DynamicRepository
@@ -15,6 +16,7 @@ class DynamicRepositoryImpl(
     override suspend fun fetchLayout(layoutId: String): Component {
         // Pass layoutId as path param
         //return httpClient.get("${baseUrl}/dynamic-ui/screen/${layoutId}").body()
+        Log.d("DynamicRepositoryImpl", "Fetching layout: $layoutId")
         return mockLayout(layoutId)
     }
 
@@ -51,6 +53,23 @@ class DynamicRepositoryImpl(
                                   "properties": {
                                     "target": "profile"
                                   }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "button2",
+                          "type": "button",
+                          "properties": {
+                            "text": "Refresh Me"
+                          },
+                          "onInteraction": [
+                            {
+                              "event": "onClick",
+                              "action": [
+                                {
+                                  "type": "refresh"
                                 }
                               ]
                             }

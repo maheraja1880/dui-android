@@ -3,9 +3,9 @@ package com.sample.dynamicui.ui.framework
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.dynamicui.domain.model.Action
-import com.sample.dynamicui.domain.model.Component
 import com.sample.dynamicui.domain.model.Interaction
 import com.sample.dynamicui.domain.repository.DynamicRepository
+import com.sample.dynamicui.ui.actions.executeNavigateAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +31,7 @@ class DynamicViewModel @Inject constructor(
     fun handleIntent(intent: DynamicUiIntent) {
         when (intent) {
             is DynamicUiIntent.LoadLayout -> loadLayout(intent.layoutId, push = true)
-            is DynamicUiIntent.Interaction -> handleInteraction(intent.componentId, intent.event, intent.interactions)
+            is DynamicUiIntent.Interaction -> handleInteraction(layoutId= intent.layoutId, intent.componentId, intent.event, intent.interactions)
             is DynamicUiIntent.DeepLink -> deepLink(intent.layoutId)
             DynamicUiIntent.Back -> navigateBack()
         }
@@ -65,24 +65,29 @@ class DynamicViewModel @Inject constructor(
     }
 
     private fun handleInteraction(
+        layoutId : String,
         componentId: String,
         event: String,
-        interactions: List<Interaction>
+        interactions: List<Interaction>,
+
     ) {
         val matching = interactions.find { it.event == event }
         val actions = matching?.action ?: emptyList()
-        actions.forEach { executeAction(it) }
+        actions.forEach { executeAction(layoutId, it) }
     }
-    private fun executeAction(action: Action) {
+    private fun executeAction(layoutId: String, action: Action) {
         viewModelScope.launch {
             when (action.type) {
-                "navigate" -> {
-                    val target = action.properties["target"]?.asString() ?: return@launch
-                    // Instead of NavController directly, we trigger effect
-                    _effect.send(DynamicUiEffect.Navigate(target.toString()))
-                }
+                // Add more actions as needed.
+                // Each action should be written as function in separate file under package com/sample/dynamicui/ui/actions
+                "navigate" -> executeNavigateAction(_effect, action= action)
+                "refresh" -> loadLayout(layoutId , push = false)
                 else -> _effect.send(DynamicUiEffect.ShowMessage("Unhandled action: ${action.type}"))
             }
         }
+    }
+
+    private fun handleRefresh() {
+
     }
 }

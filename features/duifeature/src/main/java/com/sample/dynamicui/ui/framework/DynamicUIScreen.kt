@@ -65,7 +65,7 @@ fun DynamicUIScreen(
             when (state) {
                 is DynamicUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 is DynamicUiState.Error -> Text("Error: ${state.message}", Modifier.align(Alignment.Center))
-                is DynamicUiState.Success -> DynamicComponent(component = state.component, vm = vm)
+                is DynamicUiState.Success -> DynamicComponent(layoutId, component = state.component, vm = vm)
             }
         }
     }
@@ -77,7 +77,7 @@ fun DynamicUIScreen(
 }
 
 @Composable
-fun DynamicComponent(component: Component, vm: DynamicViewModel) {
+fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewModel) {
     Log.d("DynamicComponent", "Rendering component: ${component.id}")
     when (component.type) {
         "text" -> Text(
@@ -86,7 +86,7 @@ fun DynamicComponent(component: Component, vm: DynamicViewModel) {
         )
         "button" -> Button(
             onClick = {
-                vm.handleIntent(DynamicUiIntent.Interaction(component.id, "onClick", component.onInteraction))
+                vm.handleIntent(DynamicUiIntent.Interaction(layoutId, component.id, "onClick", component.onInteraction))
             },
             modifier = Modifier.padding(8.dp)
         ) {
@@ -97,7 +97,7 @@ fun DynamicComponent(component: Component, vm: DynamicViewModel) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             component.children.forEach { child ->
-                DynamicComponent(child, vm)
+                DynamicComponent(layoutId,child, vm)
             }
         }
         else -> Text("Unsupported component: ${component.type}")
