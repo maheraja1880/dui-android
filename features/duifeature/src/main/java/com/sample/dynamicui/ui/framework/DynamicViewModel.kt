@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.dynamicui.domain.model.Action
 import com.sample.dynamicui.domain.model.Interaction
-import com.sample.dynamicui.domain.repository.DynamicRepository
+import com.sample.dynamicui.domain.usecase.GetLayout
 import com.sample.dynamicui.ui.actions.executeNavigateAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DynamicViewModel @Inject constructor(
-    private val repository: DynamicRepository
+    private val getLayout: GetLayout
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<DynamicUiState>(DynamicUiState.Loading)
@@ -41,7 +41,7 @@ class DynamicViewModel @Inject constructor(
         _state.value = DynamicUiState.Loading
         viewModelScope.launch {
             try {
-                val component = repository.fetchLayout(layoutId)
+                val component = getLayout(layoutId)
                 if (push) backStack.push(layoutId)
                 _state.value = DynamicUiState.Success(component, canGoBack = backStack.size > 1)
             } catch (e: Exception) {
