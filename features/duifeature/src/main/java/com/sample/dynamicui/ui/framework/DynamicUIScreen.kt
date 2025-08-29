@@ -4,13 +4,20 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -118,41 +125,59 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             )
         }
-//        "singleSelect" -> {
-//            val options = component.properties["options"] as? List<String> ?: emptyList()
-//            var selected by remember { mutableStateOf(component.properties["value"] as? String ?: "") }
-//            DropdownMenu(expanded = true, onDismissRequest = {}) {
-//                options.forEach { option ->
-//                    DropdownMenuItem(
-//                        onClick = {
-//                            selected = option
-//                            vm.handleIntent(DynamicUiIntent.UpdateState(component.id, option))
-//                        },
-//                        text = { Text(option) }
-//                    )
-//                }
-//            }
-//        }
-//        "multiSelect" -> {
-//            val options = component.properties["options"] as? List<String> ?: emptyList()
-//            var selected by remember { mutableStateOf(component.properties["value"] as? List<String> ?: emptyList()) }
-//            Column {
-//                options.forEach { option ->
-//                    Row(Modifier.fillMaxWidth()) {
-//                        val isChecked = selected.contains(option)
-//                        Checkbox(
-//                            checked = isChecked,
-//                            onCheckedChange = {
-//                                val newList = if (it) selected + option else selected - option
-//                                selected = newList
-//                                vm.handleIntent(DynamicUiIntent.UpdateState(component.id, newList))
-//                            }
-//                        )
-//                        Text(option, Modifier.align(Alignment.CenterVertically))
-//                    }
-//                }
-//            }
-//        }
+        "singleSelect" -> {
+            val options = component.properties["options"]?.asStringList() ?: emptyList()
+            var selected by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
+            var expanded by remember { mutableStateOf(false) }
+           Box {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        selected.ifEmpty { "Select an option" },
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Open dropdown")
+                    }
+                }
+              DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    options.forEach { option ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selected = option
+                                expanded = false
+                                vm.handleIntent(DynamicUiIntent.UpdateState(component.id, option))
+                            },
+                            text = { Text(option) }
+                        )
+                    }
+                }
+            }
+        }
+        "multiSelect" -> {
+            val options = component.properties["options"]?.asStringList() ?: emptyList()
+            var selected by remember { mutableStateOf(component.properties["value"]?.asStringList() ?: emptyList()) }
+            Column {
+                options.forEach { option ->
+                    Row(Modifier.fillMaxWidth()) {
+                        val isChecked = selected.contains(option)
+                        Checkbox(
+                            checked = isChecked,
+                            onCheckedChange = {
+                                val newList = if (it) selected + option else selected - option
+                                selected = newList
+                                vm.handleIntent(DynamicUiIntent.UpdateState(component.id, newList))
+                            }
+                        )
+                        Text(option, Modifier.align(Alignment.CenterVertically))
+                    }
+                }
+            }
+        }
         else -> Text("Unsupported component: ${component.type}")
     }
 }

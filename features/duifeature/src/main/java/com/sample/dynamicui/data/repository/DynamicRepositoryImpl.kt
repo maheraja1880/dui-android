@@ -83,6 +83,22 @@ val settings = """
       }
     },
     {
+      "id": "mulitselectTitle",
+      "type": "multiSelect",
+      "properties": {
+        "options": ["Some value", "value2", "value 3"],
+        "label": "Label here"
+      }
+    },
+    {
+      "id": "dropdownTitle",
+      "type": "singleSelect",
+      "properties": {
+        "options": ["Some value", "value2", "value 3"],
+        "label": "Label here"
+      }
+    },
+    {
       "id": "button1",
       "type": "button",
       "properties": {

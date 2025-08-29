@@ -31,6 +31,7 @@ import kotlinx.serialization.json.intOrNull
  *
  * @property value The raw primitive value as `Any?`. Supports only string, number, boolean, or null.
  */
+
 @Serializable(with = AnySerializable.Companion.Serializer::class)
 data class AnySerializable(val value: Any?) {
 
@@ -46,9 +47,12 @@ data class AnySerializable(val value: Any?) {
     /** Returns the value as a boolean, or null if the type does not match. */
     fun asBoolean() = value as? Boolean
 
+    /** Returns the value as a list of strings, or null if the type does not match. */
+    fun asStringList() = value as? List<String>
+
     companion object {
         /**
-         * Custom serializer to convert JSON primitives to [AnySerializable] and vice versa.
+         * Custom serializer to convert JSON primitives and list of strings to [AnySerializable] and vice versa.
          */
         object Serializer : KSerializer<AnySerializable> {
 
@@ -59,7 +63,8 @@ data class AnySerializable(val value: Any?) {
                 val input = decoder as? JsonDecoder
                     ?: error("AnySerializable supports only JSON decoding")
 
-                val value: Any? = when (val element = input.decodeJsonElement()) {
+                val element = input.decodeJsonElement()
+                val value: Any? = when (element) {
                     is JsonPrimitive -> when {
                         element.isString -> element.content
                         element.booleanOrNull != null -> element.boolean
@@ -67,7 +72,13 @@ data class AnySerializable(val value: Any?) {
                         element.doubleOrNull != null -> element.double
                         else -> element.content // fallback
                     }
-
+                    is kotlinx.serialization.json.JsonArray -> {
+                        // Only support List<String>
+                        val list = element.mapNotNull {
+                            if (it is JsonPrimitive && it.isString) it.content else null
+                        }
+                        if (list.size == element.size) list else null
+                    }
                     else -> null
                 }
 
@@ -84,6 +95,15 @@ data class AnySerializable(val value: Any?) {
                     is Int -> JsonPrimitive(v)
                     is Double -> JsonPrimitive(v)
                     is Boolean -> JsonPrimitive(v)
+                    is List<*> -> {
+                        // Only support List<String>
+                        val stringList = v.filterIsInstance<String>()
+                        if (stringList.size == v.size) {
+                            kotlinx.serialization.json.JsonArray(stringList.map { JsonPrimitive(it) })
+                        } else {
+                            error("Unsupported list type for serialization: ${v::class}")
+                        }
+                    }
                     else -> error("Unsupported type for serialization: ${v::class}")
                 }
 
