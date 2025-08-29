@@ -33,7 +33,7 @@ class DynamicViewModel @Inject constructor(
             is DynamicUiIntent.LoadLayout -> loadLayout(intent.layoutId, push = true)
             is DynamicUiIntent.Interaction -> handleInteraction(layoutId= intent.layoutId, intent.componentId, intent.event, intent.interactions)
             is DynamicUiIntent.DeepLink -> deepLink(intent.layoutId)
-            DynamicUiIntent.Back -> navigateBack()
+            is DynamicUiIntent.Back -> navigateBack()
         }
     }
 
@@ -85,9 +85,5 @@ class DynamicViewModel @Inject constructor(
                 else -> _effect.send(DynamicUiEffect.ShowMessage("Unhandled action: ${action.type}"))
             }
         }
-    }
-
-    private fun handleRefresh() {
-
     }
 }
