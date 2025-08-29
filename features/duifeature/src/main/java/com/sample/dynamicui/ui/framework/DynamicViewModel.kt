@@ -3,6 +3,8 @@ package com.sample.dynamicui.ui.framework
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.dynamicui.domain.model.Action
+import com.sample.dynamicui.domain.model.AnySerializable
+import com.sample.dynamicui.domain.model.Component
 import com.sample.dynamicui.domain.model.Interaction
 import com.sample.dynamicui.domain.usecase.GetLayout
 import com.sample.dynamicui.ui.actions.executeNavigateAction
@@ -22,17 +24,17 @@ class DynamicViewModel @Inject constructor(
 
     private val _state = MutableStateFlow<DynamicUiState>(DynamicUiState.Loading)
     val state: StateFlow<DynamicUiState> = _state
-
     private val _effect = Channel<DynamicUiEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
-
     private val backStack: Stack<String> = Stack()
+    private val componentState: MutableMap<String, Any?> = mutableMapOf()
 
     fun handleIntent(intent: DynamicUiIntent) {
         when (intent) {
             is DynamicUiIntent.LoadLayout -> loadLayout(intent.layoutId, push = true)
             is DynamicUiIntent.Interaction -> handleInteraction(layoutId= intent.layoutId, intent.componentId, intent.event, intent.interactions)
             is DynamicUiIntent.DeepLink -> deepLink(intent.layoutId)
+            is DynamicUiIntent.UpdateState -> updateComponentState(intent.componentId, intent.value)
             is DynamicUiIntent.Back -> navigateBack()
         }
     }
@@ -42,6 +44,7 @@ class DynamicViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val component = getLayout(layoutId)
+                restoreComponentState(component)
                 if (push) backStack.push(layoutId)
                 _state.value = DynamicUiState.Success(component, canGoBack = backStack.size > 1)
             } catch (e: Exception) {
@@ -62,6 +65,17 @@ class DynamicViewModel @Inject constructor(
         // Clear stack and start fresh from deep link
         backStack.clear()
         loadLayout(layoutId, push = true)
+    }
+
+    private fun updateComponentState(componentId: String, value: Any?) {
+        componentState[componentId] = value
+    }
+
+    private fun restoreComponentState(component: Component) {
+        if (componentState.containsKey(component.id)) {
+            component.properties["value"] = AnySerializable(componentState[component.id])
+        }
+        component.children.forEach { restoreComponentState(it) }
     }
 
     private fun handleInteraction(

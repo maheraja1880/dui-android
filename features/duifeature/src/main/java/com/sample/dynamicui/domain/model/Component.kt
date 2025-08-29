@@ -8,10 +8,15 @@ import kotlinx.serialization.json.JsonElement
 data class Component(
     val id: String,
     val type: String,
-    val properties: Map<String, AnySerializable> = emptyMap(),
+    val properties: MutableMap<String, AnySerializable> = mutableMapOf(),
     val children: List<Component> = emptyList(),
     val onInteraction: List<Interaction> = emptyList()
-)
+) {
+    operator fun get(key: String): AnySerializable? = properties[key]
+    operator fun set(key: String, value: AnySerializable) {
+        properties[key] = value
+    }
+}
 
 @Serializable
 data class Interaction(

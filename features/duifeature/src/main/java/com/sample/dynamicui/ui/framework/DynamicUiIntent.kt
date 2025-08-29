@@ -6,4 +6,5 @@ sealed class DynamicUiIntent {
     data class Interaction(val layoutId: String, val componentId: String, val event: String, val interactions: List<com.sample.dynamicui.domain.model.Interaction>) : DynamicUiIntent()
     object Back : DynamicUiIntent()
     data class DeepLink(val layoutId: String) : DynamicUiIntent()
+    data class UpdateState(val componentId: String, val value: Any?) : DynamicUiIntent()
 }

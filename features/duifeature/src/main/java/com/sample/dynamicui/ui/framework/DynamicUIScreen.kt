@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -15,10 +16,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -100,6 +106,53 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                 DynamicComponent(layoutId,child, vm)
             }
         }
+        "textInput" -> {
+            var value by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
+            TextField(
+                value = value,
+                onValueChange = {
+                    value = it
+                    vm.handleIntent(DynamicUiIntent.UpdateState(component.id, it))
+                },
+                label = { Text(component.properties["label"]?.asString() ?: "") },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            )
+        }
+//        "singleSelect" -> {
+//            val options = component.properties["options"] as? List<String> ?: emptyList()
+//            var selected by remember { mutableStateOf(component.properties["value"] as? String ?: "") }
+//            DropdownMenu(expanded = true, onDismissRequest = {}) {
+//                options.forEach { option ->
+//                    DropdownMenuItem(
+//                        onClick = {
+//                            selected = option
+//                            vm.handleIntent(DynamicUiIntent.UpdateState(component.id, option))
+//                        },
+//                        text = { Text(option) }
+//                    )
+//                }
+//            }
+//        }
+//        "multiSelect" -> {
+//            val options = component.properties["options"] as? List<String> ?: emptyList()
+//            var selected by remember { mutableStateOf(component.properties["value"] as? List<String> ?: emptyList()) }
+//            Column {
+//                options.forEach { option ->
+//                    Row(Modifier.fillMaxWidth()) {
+//                        val isChecked = selected.contains(option)
+//                        Checkbox(
+//                            checked = isChecked,
+//                            onCheckedChange = {
+//                                val newList = if (it) selected + option else selected - option
+//                                selected = newList
+//                                vm.handleIntent(DynamicUiIntent.UpdateState(component.id, newList))
+//                            }
+//                        )
+//                        Text(option, Modifier.align(Alignment.CenterVertically))
+//                    }
+//                }
+//            }
+//        }
         else -> Text("Unsupported component: ${component.type}")
     }
 }
