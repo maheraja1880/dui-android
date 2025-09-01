@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.sample.dynamicui.domain.model.AnySerializable
 import com.sample.dynamicui.domain.model.Component
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,7 +135,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
             )
         }
         "singleSelect" -> {
-            val options = component.properties["options"]?.asStringList() ?: emptyList()
+            val options = component.properties["options"]?.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
             var selected by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
             var expanded by remember { mutableStateOf(false) }
            Box {
@@ -167,10 +168,11 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
             }
         }
         "multiSelect" -> {
-            val options = component.properties["options"]?.asStringList() ?: emptyList()
-            var selected by remember { mutableStateOf(component.properties["value"]?.asStringList() ?: emptyList()) }
+            val options = component.properties["options"]?.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
+            var selected by remember { mutableStateOf(component.properties["value"]?.asList()?: emptyList<AnySerializable>()) }
             Column {
-                options.forEach { option ->
+                options.forEach { it ->
+                    val option = AnySerializable(it)
                     Row(Modifier.fillMaxWidth()) {
                         val isChecked = selected.contains(option)
                         Checkbox(
@@ -181,7 +183,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                                 vm.handleIntent(DynamicUiIntent.UpdateState(layoutId, component.id, newList))
                             }
                         )
-                        Text(option, Modifier.align(Alignment.CenterVertically))
+                        Text(option.asString()?:"EMPTY OPTION", Modifier.align(Alignment.CenterVertically))
                     }
                 }
             }

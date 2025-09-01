@@ -46,23 +46,20 @@ data class AnySerializable(val value: Any?) {
 
     /** Returns the value as a boolean, or null if the type does not match. */
     fun asBoolean() = value as? Boolean
-
-    /** Returns the value as a list of strings, or null if the type does not match. */
-    fun asStringList() = value as? List<String>
+    fun asMap() = value as? Map<String, AnySerializable>
+    fun asList() = value as? List<AnySerializable>
 
     companion object {
         /**
-         * Custom serializer to convert JSON primitives and list of strings to [AnySerializable] and vice versa.
+         * Custom serializer to convert JSON primitives, objects, and arrays to [AnySerializable] and vice versa.
          */
         object Serializer : KSerializer<AnySerializable> {
-
             override val descriptor: SerialDescriptor =
                 buildClassSerialDescriptor("AnySerializable")
 
             override fun deserialize(decoder: Decoder): AnySerializable {
                 val input = decoder as? JsonDecoder
                     ?: error("AnySerializable supports only JSON decoding")
-
                 val element = input.decodeJsonElement()
                 val value: Any? = when (element) {
                     is JsonPrimitive -> when {
@@ -73,22 +70,40 @@ data class AnySerializable(val value: Any?) {
                         else -> element.content // fallback
                     }
                     is kotlinx.serialization.json.JsonArray -> {
-                        // Only support List<String>
-                        val list = element.mapNotNull {
-                            if (it is JsonPrimitive && it.isString) it.content else null
-                        }
-                        if (list.size == element.size) list else null
+                        element.map { deserialize(input.json, it) }
+                    }
+                    is kotlinx.serialization.json.JsonObject -> {
+                        element.mapValues { (_, v) -> deserialize(input.json, v) }
                     }
                     else -> null
                 }
+                return AnySerializable(value)
+            }
 
+            // Helper for recursive deserialization
+            private fun deserialize(json: kotlinx.serialization.json.Json, element: kotlinx.serialization.json.JsonElement): AnySerializable {
+                val value: Any? = when (element) {
+                    is JsonPrimitive -> when {
+                        element.isString -> element.content
+                        element.booleanOrNull != null -> element.boolean
+                        element.intOrNull != null -> element.int
+                        element.doubleOrNull != null -> element.double
+                        else -> element.content // fallback
+                    }
+                    is kotlinx.serialization.json.JsonArray -> {
+                        element.map { deserialize(json, it) }
+                    }
+                    is kotlinx.serialization.json.JsonObject -> {
+                        element.mapValues { (_, v) -> deserialize(json, v) }
+                    }
+                    else -> null
+                }
                 return AnySerializable(value)
             }
 
             override fun serialize(encoder: Encoder, value: AnySerializable) {
                 val output = encoder as? JsonEncoder
                     ?: error("AnySerializable supports only JSON encoding")
-
                 val jsonElement = when (val v = value.value) {
                     null -> JsonNull
                     is String -> JsonPrimitive(v)
@@ -96,18 +111,43 @@ data class AnySerializable(val value: Any?) {
                     is Double -> JsonPrimitive(v)
                     is Boolean -> JsonPrimitive(v)
                     is List<*> -> {
-                        // Only support List<String>
-                        val stringList = v.filterIsInstance<String>()
-                        if (stringList.size == v.size) {
-                            kotlinx.serialization.json.JsonArray(stringList.map { JsonPrimitive(it) })
-                        } else {
-                            error("Unsupported list type for serialization: ${v::class}")
+                        val list = v.map {
+                            if (it is AnySerializable) serializeToJsonElement(it) else JsonNull
                         }
+                        kotlinx.serialization.json.JsonArray(list)
                     }
-                    else -> error("Unsupported type for serialization: ${v::class}")
+                    is Map<*, *> -> {
+                        val map = v.mapNotNull { (k, v) ->
+                            if (k is String && v is AnySerializable) k to serializeToJsonElement(v) else null
+                        }.toMap()
+                        kotlinx.serialization.json.JsonObject(map)
+                    }
+                    else -> JsonNull
                 }
-
                 output.encodeJsonElement(jsonElement)
+            }
+
+            private fun serializeToJsonElement(value: AnySerializable): kotlinx.serialization.json.JsonElement {
+                return when (val v = value.value) {
+                    null -> JsonNull
+                    is String -> JsonPrimitive(v)
+                    is Int -> JsonPrimitive(v)
+                    is Double -> JsonPrimitive(v)
+                    is Boolean -> JsonPrimitive(v)
+                    is List<*> -> {
+                        val list = v.map {
+                            if (it is AnySerializable) serializeToJsonElement(it) else JsonNull
+                        }
+                        kotlinx.serialization.json.JsonArray(list)
+                    }
+                    is Map<*, *> -> {
+                        val map = v.mapNotNull { (k, v) ->
+                            if (k is String && v is AnySerializable) k to serializeToJsonElement(v) else null
+                        }.toMap()
+                        kotlinx.serialization.json.JsonObject(map)
+                    }
+                    else -> JsonNull
+                }
             }
         }
     }

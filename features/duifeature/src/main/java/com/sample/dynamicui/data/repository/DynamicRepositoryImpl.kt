@@ -169,6 +169,14 @@ val profile = """
       }
     },
     {
+      "id": "title2",
+      "type": "textInput",
+      "properties": {
+        "value": "Some value",
+        "label": "Label here"
+      }
+    },
+    {
       "id": "button1",
       "type": "button",
       "properties": {
