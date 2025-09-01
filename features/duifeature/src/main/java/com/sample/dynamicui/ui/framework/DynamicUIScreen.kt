@@ -113,13 +113,21 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                 DynamicComponent(layoutId,child, vm)
             }
         }
+        "column" -> Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            component.children.forEach { child ->
+                DynamicComponent(layoutId,child, vm)
+            }
+        }
         "textInput" -> {
+            Log.d("DynamicComponent", "Rendering textInput component: ${component.id} with value ${component.properties["value"]?.asString()}")
             var value by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
             TextField(
                 value = value,
                 onValueChange = {
                     value = it
-                    vm.handleIntent(DynamicUiIntent.UpdateState(component.id, it))
+                    vm.handleIntent(DynamicUiIntent.UpdateState(layoutId,component.id, it))
                 },
                 label = { Text(component.properties["label"]?.asString() ?: "") },
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
@@ -150,7 +158,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                             onClick = {
                                 selected = option
                                 expanded = false
-                                vm.handleIntent(DynamicUiIntent.UpdateState(component.id, option))
+                                vm.handleIntent(DynamicUiIntent.UpdateState(layoutId, component.id, option))
                             },
                             text = { Text(option) }
                         )
@@ -170,7 +178,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                             onCheckedChange = {
                                 val newList = if (it) selected + option else selected - option
                                 selected = newList
-                                vm.handleIntent(DynamicUiIntent.UpdateState(component.id, newList))
+                                vm.handleIntent(DynamicUiIntent.UpdateState(layoutId, component.id, newList))
                             }
                         )
                         Text(option, Modifier.align(Alignment.CenterVertically))

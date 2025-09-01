@@ -68,6 +68,19 @@ val settings = """
   },
   "children": [
     {
+      "id": "card-component",
+      "type": "column",
+      "children": [
+        {
+          "id": "card-content",
+          "type": "text",
+          "properties": {
+            "text": "This is a card component"
+          }
+        }
+      ]
+    },
+    {
       "id": "title",
       "type": "text",
       "properties": {

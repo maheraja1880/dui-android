@@ -1,5 +1,6 @@
 package com.sample.dynamicui.ui.framework
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.dynamicui.domain.model.Action
@@ -34,7 +35,7 @@ class DynamicViewModel @Inject constructor(
             is DynamicUiIntent.LoadLayout -> loadLayout(intent.layoutId, push = true)
             is DynamicUiIntent.Interaction -> handleInteraction(layoutId= intent.layoutId, intent.componentId, intent.event, intent.interactions)
             is DynamicUiIntent.DeepLink -> deepLink(intent.layoutId)
-            is DynamicUiIntent.UpdateState -> updateComponentState(intent.componentId, intent.value)
+            is DynamicUiIntent.UpdateState -> updateComponentState(intent.layoutId, intent.componentId, intent.value)
             is DynamicUiIntent.Back -> navigateBack()
         }
     }
@@ -44,7 +45,7 @@ class DynamicViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val component = getLayout(layoutId)
-                restoreComponentState(component)
+                restoreComponentState(layoutId, component)
                 if (push) backStack.push(layoutId)
                 _state.value = DynamicUiState.Success(component, canGoBack = backStack.size > 1)
             } catch (e: Exception) {
@@ -67,15 +68,16 @@ class DynamicViewModel @Inject constructor(
         loadLayout(layoutId, push = true)
     }
 
-    private fun updateComponentState(componentId: String, value: Any?) {
-        componentState[componentId] = value
+    private fun updateComponentState(layoutId: String, componentId: String, value: Any?) {
+        componentState[layoutId +componentId] = value
     }
 
-    private fun restoreComponentState(component: Component) {
-        if (componentState.containsKey(component.id)) {
-            component.properties["value"] = AnySerializable(componentState[component.id])
+    private fun restoreComponentState(layoutId: String, component: Component) {
+        if (componentState.containsKey(layoutId + component.id)) {
+            component.properties["value"] = AnySerializable(componentState[layoutId + component.id])
+            Log.d("DynamicViewModel", "Restoring state for component: ${component.id} with value: ${component.properties["value"]}" )
         }
-        component.children.forEach { restoreComponentState(it) }
+        component.children.forEach { restoreComponentState(layoutId, it) }
     }
 
     private fun handleInteraction(
