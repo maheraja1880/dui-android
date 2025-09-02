@@ -77,6 +77,13 @@ val settings = """
           "properties": {
             "text": "This is a card component"
           }
+        },
+        {
+          "id": "dynamic-content",
+          "type": "dynamicText",
+          "properties": {
+            "value": "This is a dynamic value"
+          }
         }
       ]
     },

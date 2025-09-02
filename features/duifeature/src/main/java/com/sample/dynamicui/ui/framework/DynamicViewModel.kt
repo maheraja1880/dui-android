@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.util.Stack
 import javax.inject.Inject
+import kotlin.text.set
 
 @HiltViewModel
 class DynamicViewModel @Inject constructor(
@@ -70,6 +71,19 @@ class DynamicViewModel @Inject constructor(
 
     private fun updateComponentState(layoutId: String, componentId: String, value: Any?) {
         componentState[layoutId +componentId] = value
+
+        val currentState = _state.value
+        if (currentState is DynamicUiState.Success) {
+            // Do a deep copy to trigger recomposition.
+            // TODO the below triggers complete screen recomposition. Modify to trigger only recomposing the relevant components
+            val newComponent = currentState.component.deepCopy()
+            val dynamicComp = newComponent.getComponentById("dynamic-content")
+            dynamicComp?.properties?.set("value", AnySerializable(value))
+            componentState[layoutId +"dynamic-content"] = value
+            // Emit a new state instance to trigger recomposition
+            _state.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
+
+        }
     }
 
     private fun restoreComponentState(layoutId: String, component: Component) {

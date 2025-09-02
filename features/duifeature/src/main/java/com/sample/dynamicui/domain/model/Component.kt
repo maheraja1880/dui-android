@@ -16,6 +16,23 @@ data class Component(
     operator fun set(key: String, value: AnySerializable) {
         properties[key] = value
     }
+
+    fun getComponentById(id: String): Component? {
+        if (this.id == id) return this
+        for (child in children) {
+            val found = child.getComponentById(id)
+            if (found != null) return found
+        }
+        return null
+    }
+
+    fun deepCopy(): Component = Component(
+        id = id,
+        type = type,
+        properties = properties.toMutableMap(), // creates a new map instance
+        children = children.map { it.deepCopy() },
+        onInteraction = onInteraction.map { it.copy() }
+    )
 }
 
 @Serializable

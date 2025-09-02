@@ -95,6 +95,12 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
             text = component.properties["text"] ?.asString()?: "EMPTY TEXT",
             modifier = Modifier.padding(8.dp)
         )
+        "dynamicText" -> {
+            Text(
+                text = component.properties["value"] ?.asString()?: "EMPTY VALUE",
+                modifier = Modifier.padding(8.dp)
+            )
+        }
         "button" -> Button(
             onClick = {
                 vm.handleIntent(DynamicUiIntent.Interaction(layoutId, component.id, "onClick", component.onInteraction))
@@ -119,7 +125,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
             }
         }
         "textInput" -> {
-            Log.d("DynamicComponent", "Rendering textInput component: ${component.id} with value ${component.properties["value"]?.asString()}")
+            //Log.d("DynamicComponent", "Rendering textInput component: ${component.id} with value ${component.properties["value"]?.asString()}")
             var value by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
             TextField(
                 value = value,
