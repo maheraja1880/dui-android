@@ -23,6 +23,8 @@ import androidx.compose.runtime.getValue
 import com.sample.dynamicui.ui.framework.DynamicUiIntent
 import com.sample.dynamicui.ui.framework.DynamicUiState
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 @AndroidEntryPoint
 class DUIActivity : ComponentActivity() {
@@ -37,13 +39,14 @@ class DUIActivity : ComponentActivity() {
             val state by vm.state.collectAsState()
 
             Scaffold(
+                modifier = Modifier,
                 topBar = {
                     TopAppBar(
-                        title = { Text("Dynamic UI") },
+                        title = { Text("Dynamic UI", color = Color.White, modifier = Modifier.padding(top = 15.dp)) },
                         navigationIcon = if (state is DynamicUiState.Success && (state as DynamicUiState.Success).canGoBack) {
                             {
-                                IconButton(onClick = { vm.handleIntent(DynamicUiIntent.Back) }) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                IconButton(onClick = { vm.handleIntent(DynamicUiIntent.Back) }, modifier = Modifier.padding(top = 15.dp)) {
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                                 }
                             }
                         } else null
