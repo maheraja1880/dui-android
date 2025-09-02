@@ -1,5 +1,6 @@
 package com.sample.dynamicui.data.respository
 
+import android.util.Log
 import com.sample.dynamicui.data.repository.DynamicRepositoryImpl
 import com.sample.dynamicui.domain.model.Action
 import com.sample.dynamicui.domain.model.AnySerializable
@@ -14,13 +15,22 @@ import io.ktor.client.request.get
 import io.ktor.http.ContentType
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import io.mockk.every
+import io.mockk.mockkStatic
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import org.junit.Before
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class DynamicRepositoryImplTest {
+
+    @Before
+    fun setup() {
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } answers { println("Log.d: tag=${it.invocation.args[0]}, msg=${it.invocation.args[1]}"); 0 }
+    }
 
     private val sampleJson = """
         {
