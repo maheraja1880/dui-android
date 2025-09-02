@@ -1,6 +1,7 @@
 package com.sample.dynamicui.ui.framework
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,11 @@ fun DynamicUIScreen(
 ) {
     val state = vm.state.collectAsState().value
 
+    // Handle system back button
+    BackHandler(enabled = state is DynamicUiState.Success && state.canGoBack) {
+        vm.handleIntent(DynamicUiIntent.Back)
+    }
+
     // Observe effects (navigate, messages)
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -62,20 +68,11 @@ fun DynamicUIScreen(
     }
 
     Scaffold(
-        topBar = {
-            if (state is DynamicUiState.Success && state.canGoBack) {
-                TopAppBar(
-                    title = { Text("Dynamic Screen") },
-                    navigationIcon = {
-                        IconButton(onClick = { vm.handleIntent(DynamicUiIntent.Back) }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                        }
-                    }
-                )
-            }
-        }
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
+        Box(
+            modifier
+                .fillMaxSize()
+                .padding(padding)) {
             when (state) {
                 is DynamicUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 is DynamicUiState.Error -> Text("Error: ${state.message}", Modifier.align(Alignment.Center))
