@@ -94,7 +94,7 @@ val serverContents = """
             }
         },
         {
-            "id": "title2",
+            "id": "textInputTitle",
             "type": "textInput",
             "properties": {
                 "value": "@@selection.name",

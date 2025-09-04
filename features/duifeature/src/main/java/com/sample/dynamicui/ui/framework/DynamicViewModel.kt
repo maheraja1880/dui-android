@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.util.Stack
 import javax.inject.Inject
+import kotlin.random.Random
 import kotlin.text.set
 
 @HiltViewModel
@@ -91,19 +92,16 @@ class DynamicViewModel @Inject constructor(
     private fun updateComponentState(layoutId: String, path: String, value: Any?) {
         //componentState[layoutId +componentId] = value
         componentGlobalState["$layoutId.$path"] = AnySerializable(value)
+        componentGlobalState["$layoutId.usage.data"] = AnySerializable(value)
 
-//        val currentState = _state.value
-//        if (currentState is DynamicUiState.Success) {
-//            // Do a deep copy to trigger recomposition.
-//            // TODO the below triggers complete screen recomposition. Modify to trigger only recomposing the relevant components
-//            val newComponent = currentState.component.deepCopy()
-//            val dynamicComp = newComponent.getComponentById("dynamic-content")
-//            dynamicComp?.properties?.set("value", AnySerializable(value))
-//            componentState[layoutId +"dynamic-content"] = value
-//            // Emit a new state instance to trigger recomposition
-//            _state.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
-//
-//        }
+        val currentState = _state.value
+        if (currentState is DynamicUiState.Success) {
+            // TODO the below triggers complete screen recomposition. Modify to trigger only recomposing the relevant components
+            val newComponent = currentState.component.deepCopy()
+            // Below is the dummy property added to trigger a recomposition
+            newComponent.properties.put("a", AnySerializable(value))
+            _state.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
+        }
     }
 
     private fun restoreComponentState(layoutId: String, component: Component) {

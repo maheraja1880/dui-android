@@ -31,6 +31,7 @@ data class Component(
         type = type,
         properties = properties.toMutableMap(), // creates a new map instance
         children = children.map { it.deepCopy() },
+        //children =  children,
         onInteraction = onInteraction.map { it.copy() }
     )
 }
