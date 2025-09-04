@@ -30,6 +30,9 @@ class DynamicViewModel @Inject constructor(
     val effect = _effect.receiveAsFlow()
     private val backStack: Stack<String> = Stack()
     private val componentState: MutableMap<String, Any?> = mutableMapOf()
+    private var componentGlobalState = mutableMapOf<String, AnySerializable>()
+
+    private val stateManager: StateManager = StateManager()
 
     fun handleIntent(intent: DynamicUiIntent) {
         when (intent) {
@@ -47,6 +50,7 @@ class DynamicViewModel @Inject constructor(
             try {
                 val component = getLayout(layoutId)
                 restoreComponentState(layoutId, component)
+                //componentGlobalState = stateManager.extractState(layoutId, component)
                 if (push) backStack.push(layoutId)
                 _state.value = DynamicUiState.Success(component, canGoBack = backStack.size > 1)
             } catch (e: Exception) {
@@ -54,6 +58,21 @@ class DynamicViewModel @Inject constructor(
             }
         }
     }
+
+    fun getComponentState(layoutId: String, valuePath: String): AnySerializable {
+        if (valuePath.startsWith("@@")) {
+            val path = valuePath.substring(2)
+            return componentGlobalState["$layoutId.$path"] ?: AnySerializable("")
+        } else {
+            return AnySerializable(valuePath)
+        }
+
+    }
+
+    fun getComponentPropertyPath(path: String): String{
+         return if (path.startsWith("@@")) path.substring(2) else path
+    }
+
 
     private fun navigateBack() {
         if (backStack.size > 1) {
@@ -69,29 +88,38 @@ class DynamicViewModel @Inject constructor(
         loadLayout(layoutId, push = true)
     }
 
-    private fun updateComponentState(layoutId: String, componentId: String, value: Any?) {
-        componentState[layoutId +componentId] = value
+    private fun updateComponentState(layoutId: String, path: String, value: Any?) {
+        //componentState[layoutId +componentId] = value
+        componentGlobalState["$layoutId.$path"] = AnySerializable(value)
 
-        val currentState = _state.value
-        if (currentState is DynamicUiState.Success) {
-            // Do a deep copy to trigger recomposition.
-            // TODO the below triggers complete screen recomposition. Modify to trigger only recomposing the relevant components
-            val newComponent = currentState.component.deepCopy()
-            val dynamicComp = newComponent.getComponentById("dynamic-content")
-            dynamicComp?.properties?.set("value", AnySerializable(value))
-            componentState[layoutId +"dynamic-content"] = value
-            // Emit a new state instance to trigger recomposition
-            _state.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
-
-        }
+//        val currentState = _state.value
+//        if (currentState is DynamicUiState.Success) {
+//            // Do a deep copy to trigger recomposition.
+//            // TODO the below triggers complete screen recomposition. Modify to trigger only recomposing the relevant components
+//            val newComponent = currentState.component.deepCopy()
+//            val dynamicComp = newComponent.getComponentById("dynamic-content")
+//            dynamicComp?.properties?.set("value", AnySerializable(value))
+//            componentState[layoutId +"dynamic-content"] = value
+//            // Emit a new state instance to trigger recomposition
+//            _state.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
+//
+//        }
     }
 
     private fun restoreComponentState(layoutId: String, component: Component) {
+        if (componentGlobalState.isEmpty() && !componentGlobalState.keys.any { it.startsWith("$layoutId.") }) {
+            componentGlobalState = stateManager.extractState(layoutId, component)
+        }
+
         if (componentState.containsKey(layoutId + component.id)) {
             component.properties["value"] = AnySerializable(componentState[layoutId + component.id])
             Log.d("DynamicViewModel", "Restoring state for component: ${component.id} with value: ${component.properties["value"]}" )
         }
         component.children.forEach { restoreComponentState(layoutId, it) }
+    }
+
+    private fun createComponentState(layoutId: String, component: Component) {
+
     }
 
     private fun handleInteraction(

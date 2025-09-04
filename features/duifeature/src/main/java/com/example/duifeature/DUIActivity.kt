@@ -32,7 +32,7 @@ class DUIActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val layoutId = intent?.data?.lastPathSegment ?: "home"
+        val layoutId = intent?.data?.lastPathSegment ?: "server-contents"
 
         setContent {
             val vm: DynamicViewModel = hiltViewModel()

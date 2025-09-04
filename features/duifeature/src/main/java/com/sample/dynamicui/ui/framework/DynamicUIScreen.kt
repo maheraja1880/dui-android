@@ -98,10 +98,14 @@ fun DynamicUIScreen(
 fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewModel) {
     Log.d("DynamicComponent", "Rendering component: ${component.id}")
     when (component.type) {
-        "text" -> Text(
-            text = component.properties["text"] ?.asString()?: "EMPTY TEXT",
-            modifier = Modifier.padding(8.dp)
-        )
+        "text" -> vm.getComponentState(layoutId, component.properties["text"] ?.asString()?: "EMPTY TEXT").asString()
+            ?.let {
+                Text(
+                    //text = component.properties["text"] ?.asString()?: "EMPTY TEXT",
+                    text = it,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
         "dynamicText" -> {
             Text(
                 text = component.properties["value"] ?.asString()?: "EMPTY VALUE",
@@ -151,12 +155,18 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
         "shimmer" -> ShimmerCard()
         "textInput" -> {
             //Log.d("DynamicComponent", "Rendering textInput component: ${component.id} with value ${component.properties["value"]?.asString()}")
-            var value by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
+            //var value by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
+            val statePath = vm.getComponentPropertyPath(component.properties["value"] ?.asString()?: "EMPTY TEXT")
+            var value by remember { mutableStateOf(vm.getComponentState(layoutId, component.properties["value"] ?.asString()?: "EMPTY TEXT").asString()) }
+
             TextField(
-                value = value,
+                value = value?: "EMPTY",
                 onValueChange = {
                     value = it
-                    vm.handleIntent(DynamicUiIntent.UpdateState(layoutId,component.id, it))
+                    vm.handleIntent(
+                        //DynamicUiIntent.UpdateState(layoutId,component.id, it)
+                        DynamicUiIntent.UpdateState(layoutId,statePath, it)
+                    )
                 },
                 label = { Text(component.properties["label"]?.asString() ?: "") },
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
@@ -164,7 +174,9 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
         }
         "singleSelect" -> {
             val options = component.properties["options"]?.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
-            var selected by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
+            val statePath = vm.getComponentPropertyPath(component.properties["selected"] ?.asString()?: "EMPTY PATH OR VALUE")
+            var selected by remember { mutableStateOf(vm.getComponentState(layoutId, component.properties["selected"] ?.asString()?: "EMPTY TEXT").asString()) }
+            //var selected by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
             var expanded by remember { mutableStateOf(false) }
            Box {
                 Row(
@@ -174,7 +186,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        selected.ifEmpty { "Select an option" },
+                        selected?.ifEmpty { "Select an option" } ?: "EMPTY",
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = { expanded = true }) {
@@ -187,7 +199,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                             onClick = {
                                 selected = option
                                 expanded = false
-                                vm.handleIntent(DynamicUiIntent.UpdateState(layoutId, component.id, option))
+                                vm.handleIntent(DynamicUiIntent.UpdateState(layoutId, statePath, option))
                             },
                             text = { Text(option) }
                         )
@@ -197,16 +209,21 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
         }
         "multiSelect" -> {
             val options = component.properties["options"]?.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
-            var selected by remember { mutableStateOf(component.properties["value"]?.asList()?: emptyList<AnySerializable>()) }
+            val statePath = vm.getComponentPropertyPath(component.properties["selected"] ?.asString()?: "EMPTY PATH OR VALUE")
+            //var selected by remember { mutableStateOf(component.properties["value"]?.asList()?: emptyList<AnySerializable>()) }
+            var selected by remember { mutableStateOf(vm.getComponentState(layoutId, component.properties["selected"] ?.asString()?: "EMPTY TEXT").asList()) }
+
             Column {
                 options.forEach { it ->
                     val option = AnySerializable(it)
                     Row(Modifier.fillMaxWidth()) {
-                        val isChecked = selected.contains(option)
+                        val isChecked = selected?.contains(option)
                         Checkbox(
-                            checked = isChecked,
+                            checked = isChecked == true,
                             onCheckedChange = {
-                                val newList = if (it) selected + option else selected - option
+                                val newList = if (it) selected?.plus(option) ?: emptyList<AnySerializable>() else selected?.minus(
+                                    option
+                                ) ?: emptyList<AnySerializable>()
                                 selected = newList
                                 vm.handleIntent(DynamicUiIntent.UpdateState(layoutId, component.id, newList))
                             }

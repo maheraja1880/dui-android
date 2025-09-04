@@ -35,7 +35,8 @@ object ApiClient {
         val layoutJsonMap = mapOf(
             "home" to home,
             "profile" to profile,
-            "settings" to settings
+            "settings" to settings,
+            "server-contents" to serverContents
         )
         val jsonString = layoutJsonMap[layoutId]
             ?: throw IllegalArgumentException("No mock layout found for id: $layoutId")
@@ -43,6 +44,100 @@ object ApiClient {
         return jsonString
     }
 }
+
+val serverContents = """
+{
+    "id": "server-container",
+    "type": "container",
+    "properties": 
+    {
+        "state": {
+            "usage": {
+                "data" : "20GB",
+                "used" : "10GB",
+                "free" : "10GB",
+                "total" : "30GB"
+            },
+            "selection" : {
+                "name": "your name",
+                "prefix": "Mr.",
+                "topics": ["topic1", "topic2"]
+            }
+        }        
+    },
+    "children": [
+        {
+            "id": "title",
+            "type": "text",
+            "properties": {
+                "text": "@@usage.data"
+            }
+        },
+        {
+            "id": "title2",
+            "type": "text",
+            "properties": {
+                "text": "@@usage.used"
+            }
+        },
+        {
+            "id": "title3",
+            "type": "text",
+            "properties": {
+                "text": "@@usage.free"
+            }
+        },
+        {
+            "id": "title2",
+            "type": "textInput",
+            "properties": {
+                "value": "@@selection.name",
+                "label": "Label here"
+            }
+        },
+        {
+          "id": "dropdownTitle",
+          "type": "singleSelect",
+          "properties": {
+            "options": ["Mr.", "Ms.", "Mrs."],
+            "label": "Label here",
+            "selected": "@@selection.prefix"
+          }
+        },
+        {
+          "id": "mulitselectTitle",
+          "type": "multiSelect",
+          "properties": {
+            "options": ["topic1", "topic2", "topic3"],
+            "label": "Label here",
+            "selected": "@@selection.topics"
+          }
+        },
+        
+        
+        {
+            "id": "button1",
+            "type": "button",
+            "properties": {
+                "text": "Click Me"
+            },
+            "onInteraction": [
+            {
+              "event": "onClick",
+              "action": [
+                {
+                  "type": "navigate",
+                  "properties": {
+                    "target": "profile"
+                  }
+                }
+              ]
+            }
+            ]
+        }
+    ]
+}
+""".trimIndent()
 
 val settings = """
 {
