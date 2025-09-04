@@ -60,8 +60,14 @@ val serverContents = """
             },
             "selection" : {
                 "name": "your name",
-                "prefix": "Mr.",
-                "topics": ["topic1", "topic2"]
+                "prefix": {
+                    "selected": "Mr.",
+                    "options": ["Mr.", "Ms.", "Mrs."]
+                },
+                "topics": {
+                    "selected": ["topic1", "topic2"],
+                    "options": ["topic1", "topic2", "topic3"]
+                }
             }
         }        
     },
@@ -99,18 +105,18 @@ val serverContents = """
           "id": "dropdownTitle",
           "type": "singleSelect",
           "properties": {
-            "options": ["Mr.", "Ms.", "Mrs."],
+            "options": "@@selection.prefix.options",
             "label": "Label here",
-            "selected": "@@selection.prefix"
+            "selected": "@@selection.prefix.selected"
           }
         },
         {
           "id": "mulitselectTitle",
           "type": "multiSelect",
           "properties": {
-            "options": ["topic1", "topic2", "topic3"],
+            "options": "@@selection.topics.options",
             "label": "Label here",
-            "selected": "@@selection.topics"
+            "selected": "@@selection.topics.selected"
           }
         },
         

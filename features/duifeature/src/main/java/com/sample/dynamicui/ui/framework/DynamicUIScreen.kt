@@ -173,7 +173,10 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
             )
         }
         "singleSelect" -> {
-            val options = component.properties["options"]?.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
+            //val options = component.properties["options"]?.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
+            val options1 = vm.getComponentState(layoutId, component.properties["options"] ?.asString()?: "EMPTY TEXT")
+            val options = options1.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
+            //Log.d("DynamicComponent", "Rendering singleSelect component: ${component.id} with options $options")
             val statePath = vm.getComponentPropertyPath(component.properties["selected"] ?.asString()?: "EMPTY PATH OR VALUE")
             var selected by remember { mutableStateOf(vm.getComponentState(layoutId, component.properties["selected"] ?.asString()?: "EMPTY TEXT").asString()) }
             //var selected by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
@@ -208,7 +211,10 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
             }
         }
         "multiSelect" -> {
-            val options = component.properties["options"]?.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
+            //val options = component.properties["options"]?.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
+            val options1 = vm.getComponentState(layoutId, component.properties["options"] ?.asString()?: "EMPTY TEXT")
+            val options = options1.asList()?.map { it.asString()?: "EMPTY OPTION" } ?: emptyList<String>()
+
             val statePath = vm.getComponentPropertyPath(component.properties["selected"] ?.asString()?: "EMPTY PATH OR VALUE")
             //var selected by remember { mutableStateOf(component.properties["value"]?.asList()?: emptyList<AnySerializable>()) }
             var selected by remember { mutableStateOf(vm.getComponentState(layoutId, component.properties["selected"] ?.asString()?: "EMPTY TEXT").asList()) }
@@ -225,7 +231,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                                     option
                                 ) ?: emptyList<AnySerializable>()
                                 selected = newList
-                                vm.handleIntent(DynamicUiIntent.UpdateState(layoutId, component.id, newList))
+                                vm.handleIntent(DynamicUiIntent.UpdateState(layoutId, statePath, newList))
                             }
                         )
                         Text(option.asString()?:"EMPTY OPTION", Modifier.align(Alignment.CenterVertically))
