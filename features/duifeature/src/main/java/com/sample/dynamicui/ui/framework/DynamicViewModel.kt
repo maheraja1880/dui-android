@@ -93,14 +93,23 @@ class DynamicViewModel @Inject constructor(
         //componentState[layoutId +componentId] = value
         componentGlobalState["$layoutId.$path"] = AnySerializable(value)
         componentGlobalState["$layoutId.usage.data"] = AnySerializable(value)
+        triggerRecomposition(value)
+    }
 
-        val currentState = _state.value
-        if (currentState is DynamicUiState.Success) {
-            // TODO the below triggers complete screen recomposition. Modify to trigger only recomposing the relevant components
-            val newComponent = currentState.component.deepCopy()
-            // Below is the dummy property added to trigger a recomposition
-            newComponent.properties.put("a", AnySerializable(value))
-            _state.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
+    // TODO the below triggers complete screen recomposition. Modify to trigger only recomposing the relevant components
+    private fun triggerRecomposition(value: Any?) {
+        viewModelScope.launch {
+            try {
+                val currentState = _state.value
+                if (currentState is DynamicUiState.Success) {
+                    val newComponent = currentState.component.deepCopy()
+                    // Below is the dummy property added to trigger a recomposition
+                    newComponent.properties.put("a", AnySerializable(value))
+                    _state.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
+                }
+            } catch (e: Exception) {
+                _state.value = DynamicUiState.Error(e.message ?: "Unknown error")
+            }
         }
     }
 
