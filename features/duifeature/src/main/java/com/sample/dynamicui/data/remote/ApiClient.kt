@@ -99,14 +99,28 @@ val serverContents = """
             "properties": {
                 "value": "@@selection.name",
                 "label": "Label here"
-            }
+            },
+            "onInteraction": [
+                {
+                  "event": "onValueChange",
+                  "action": [
+                    {
+                      "type": "setState",
+                      "properties": {
+                        "toPath": "@@usage.data",
+                        "fromPath": "@@selection.name"
+                      }
+                    }
+                  ]
+                }
+            ]
         },
         {
           "id": "dropdownTitle",
           "type": "singleSelect",
           "properties": {
             "options": "@@selection.prefix.options",
-            "label": "Label here",
+            "label": "Select a prefix",
             "selected": "@@selection.prefix.selected"
           }
         },

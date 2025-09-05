@@ -101,7 +101,6 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
         "text" -> vm.getComponentState(layoutId, component.properties["text"] ?.asString()?: "EMPTY TEXT").asString()
             ?.let {
                 Text(
-                    //text = component.properties["text"] ?.asString()?: "EMPTY TEXT",
                     text = it,
                     modifier = Modifier.padding(8.dp)
                 )
@@ -167,6 +166,9 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                         //DynamicUiIntent.UpdateState(layoutId,component.id, it)
                         DynamicUiIntent.UpdateState(layoutId,statePath, it)
                     )
+                    vm.handleIntent(
+                        DynamicUiIntent.Interaction(layoutId, component.id, "onValueChange", component.onInteraction)
+                    )
                 },
                 label = { Text(component.properties["label"]?.asString() ?: "") },
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
@@ -182,6 +184,11 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
             //var selected by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
             var expanded by remember { mutableStateOf(false) }
            Box {
+               component.properties["label"]?.asString()?.let {
+                   Text(
+                       text = it
+                   )
+               }
                 Row(
                     Modifier
                         .fillMaxWidth()

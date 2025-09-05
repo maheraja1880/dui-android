@@ -30,8 +30,11 @@ class DynamicViewModel @Inject constructor(
     private val _effect = Channel<DynamicUiEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
     private val backStack: Stack<String> = Stack()
-    private val componentState: MutableMap<String, Any?> = mutableMapOf()
-    private var componentGlobalState = mutableMapOf<String, AnySerializable>()
+
+    //private var componentGlobalState = mutableMapOf<String, AnySerializable>()
+
+    private val _componentGlobalState = MutableStateFlow<MutableMap<String, AnySerializable>>(mutableMapOf())
+    val componentGlobalState: StateFlow<MutableMap<String, AnySerializable>> = _componentGlobalState
 
     private val stateManager: StateManager = StateManager()
 
@@ -60,18 +63,38 @@ class DynamicViewModel @Inject constructor(
         }
     }
 
+    private fun restoreComponentState(layoutId: String, component: Component) {
+        if (componentGlobalState.value.isEmpty() && !componentGlobalState.value.keys.any { it.startsWith("$layoutId.") }) {
+            componentGlobalState.value.putAll(stateManager.extractState(layoutId, component))
+        }
+    }
+
     fun getComponentState(layoutId: String, valuePath: String): AnySerializable {
         if (valuePath.startsWith("@@")) {
             val path = valuePath.substring(2)
-            return componentGlobalState["$layoutId.$path"] ?: AnySerializable("")
+            return componentGlobalState.value["$layoutId.$path"] ?: AnySerializable("NO STATE FOR PATH $layoutId.$valuePath")
         } else {
             return AnySerializable(valuePath)
         }
 
     }
+    private fun updateComponentState(layoutId: String, path: String, value: Any?) {
+        //componentState[layoutId +componentId] = value
+        componentGlobalState.value["$layoutId.$path"] = AnySerializable(value)
+        //componentGlobalState.value["$layoutId.usage.data"] = AnySerializable(value)
+        //triggerRecomposition(value)
+    }
 
     fun getComponentPropertyPath(path: String): String{
          return if (path.startsWith("@@")) path.substring(2) else path
+    }
+
+    fun getRootComponent(): Component {
+        if (_state.value is DynamicUiState.Success) {
+            return (_state.value as DynamicUiState.Success).component
+        } else {
+            throw IllegalStateException("Root component not available")
+        }
     }
 
 
@@ -89,12 +112,6 @@ class DynamicViewModel @Inject constructor(
         loadLayout(layoutId, push = true)
     }
 
-    private fun updateComponentState(layoutId: String, path: String, value: Any?) {
-        //componentState[layoutId +componentId] = value
-        componentGlobalState["$layoutId.$path"] = AnySerializable(value)
-        componentGlobalState["$layoutId.usage.data"] = AnySerializable(value)
-        triggerRecomposition(value)
-    }
 
     // TODO the below triggers complete screen recomposition. Modify to trigger only recomposing the relevant components
     private fun triggerRecomposition(value: Any?) {
@@ -113,17 +130,7 @@ class DynamicViewModel @Inject constructor(
         }
     }
 
-    private fun restoreComponentState(layoutId: String, component: Component) {
-        if (componentGlobalState.isEmpty() && !componentGlobalState.keys.any { it.startsWith("$layoutId.") }) {
-            componentGlobalState = stateManager.extractState(layoutId, component)
-        }
 
-        if (componentState.containsKey(layoutId + component.id)) {
-            component.properties["value"] = AnySerializable(componentState[layoutId + component.id])
-            Log.d("DynamicViewModel", "Restoring state for component: ${component.id} with value: ${component.properties["value"]}" )
-        }
-        component.children.forEach { restoreComponentState(layoutId, it) }
-    }
 
     private fun createComponentState(layoutId: String, component: Component) {
 
@@ -138,15 +145,24 @@ class DynamicViewModel @Inject constructor(
     ) {
         val matching = interactions.find { it.event == event }
         val actions = matching?.action ?: emptyList()
-        actions.forEach { executeAction(layoutId, it) }
+        actions.forEach { executeAction(layoutId, componentId,it) }
     }
-    private fun executeAction(layoutId: String, action: Action) {
+    private fun executeAction(layoutId: String, componentId: String, action: Action) {
         viewModelScope.launch {
+            val component = getRootComponent().getComponentById(componentId)
             when (action.type) {
                 // Add more actions as needed.
                 // Each action should be written as function in separate file under package com/sample/dynamicui/ui/actions
                 "navigate" -> executeNavigateAction(_effect, action= action)
                 "refresh" -> loadLayout(layoutId , push = false)
+                "setState" -> {
+                    val path = getComponentPropertyPath(action.properties["toPath"]?.asString()?: "NO PATH SPECIFIED")
+                    val value = getComponentState(layoutId, action.properties["fromPath"]?.asString()?: "NO PATH SPECIFIED")
+                    // TODO handles only string conversion, need to handle other data types.
+                    updateComponentState(layoutId, path, value.asString())
+                    triggerRecomposition(value)
+
+                }
                 else -> _effect.send(DynamicUiEffect.ShowMessage("Unhandled action: ${action.type}"))
             }
         }
