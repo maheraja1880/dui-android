@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sample.dynamicui.ui.framework.DynamicUIScreen
@@ -22,7 +21,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.sample.dynamicui.ui.framework.DynamicUiIntent
 import com.sample.dynamicui.ui.framework.DynamicUiState
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -36,7 +34,7 @@ class DUIActivity : ComponentActivity() {
 
         setContent {
             val vm: DynamicViewModel = hiltViewModel()
-            val state by vm.state.collectAsState()
+            val state by vm.dynamicUILayout.collectAsState()
 
             Scaffold(
                 modifier = Modifier,

@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,10 +51,13 @@ fun DynamicUIScreen(
     layoutId: String,
     vm: DynamicViewModel = hiltViewModel()
 ) {
-    val state = vm.state.collectAsState().value
+    val layout = vm.dynamicUILayout.collectAsState().value
+
+
+    Log.d("DynamicUIScreen", "DynamicUIScreen - Rendering layout: $layoutId")
 
     // Handle system back button
-    BackHandler(enabled = state is DynamicUiState.Success && state.canGoBack) {
+    BackHandler(enabled = layout is DynamicUiState.Success && layout.canGoBack) {
         vm.handleIntent(DynamicUiIntent.Back)
     }
 
@@ -80,10 +80,10 @@ fun DynamicUIScreen(
             modifier
                 .fillMaxSize()
                 .padding(padding)) {
-            when (state) {
+            when (layout) {
                 is DynamicUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                is DynamicUiState.Error -> Text("Error: ${state.message}", Modifier.align(Alignment.Center))
-                is DynamicUiState.Success -> DynamicComponent(layoutId, component = state.component, vm = vm)
+                is DynamicUiState.Error -> Text("Error: ${layout.message}", Modifier.align(Alignment.Center))
+                is DynamicUiState.Success -> DynamicComponent(layoutId, component = layout.component, vm = vm)
             }
         }
     }
@@ -95,8 +95,8 @@ fun DynamicUIScreen(
 }
 
 @Composable
-fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewModel) {
-    Log.d("DynamicComponent", "Rendering component: ${component.id}")
+fun DynamicComponent(layoutId: String, component: Component,  vm: DynamicViewModel) {
+    Log.d("DynamicComponent", "DynamicComponent - Rendering component: ${component.id}")
     when (component.type) {
         "text" -> vm.getComponentState(layoutId, component.properties["text"] ?.asString()?: "EMPTY TEXT").asString()
             ?.let {
@@ -131,7 +131,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             component.children.forEach { child ->
-                DynamicComponent(layoutId,child, vm)
+                DynamicComponent(layoutId,child,  vm)
             }
         }
         "card" -> Card(
@@ -147,7 +147,7 @@ fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewMode
                 modifier = Modifier.padding(16.dp)
             ) {
                 component.children.forEach { child ->
-                    DynamicComponent(layoutId, child, vm)
+                    DynamicComponent(layoutId, child,  vm)
                 }
             }
         }

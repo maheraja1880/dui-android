@@ -1,6 +1,5 @@
 package com.sample.dynamicui.ui.framework
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.dynamicui.domain.model.Action
@@ -17,16 +16,14 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.util.Stack
 import javax.inject.Inject
-import kotlin.random.Random
-import kotlin.text.set
 
 @HiltViewModel
 class DynamicViewModel @Inject constructor(
     private val getLayout: GetLayout
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<DynamicUiState>(DynamicUiState.Loading)
-    val state: StateFlow<DynamicUiState> = _state
+    private val _dynamicUILayout = MutableStateFlow<DynamicUiState>(DynamicUiState.Loading)
+    val dynamicUILayout: StateFlow<DynamicUiState> = _dynamicUILayout
     private val _effect = Channel<DynamicUiEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
     private val backStack: Stack<String> = Stack()
@@ -49,16 +46,16 @@ class DynamicViewModel @Inject constructor(
     }
 
     private fun loadLayout(layoutId: String, push: Boolean) {
-        _state.value = DynamicUiState.Loading
+        _dynamicUILayout.value = DynamicUiState.Loading
         viewModelScope.launch {
             try {
                 val component = getLayout(layoutId)
                 restoreComponentState(layoutId, component)
                 //componentGlobalState = stateManager.extractState(layoutId, component)
                 if (push) backStack.push(layoutId)
-                _state.value = DynamicUiState.Success(component, canGoBack = backStack.size > 1)
+                _dynamicUILayout.value = DynamicUiState.Success(component, canGoBack = backStack.size > 1)
             } catch (e: Exception) {
-                _state.value = DynamicUiState.Error(e.message ?: "Unknown error")
+                _dynamicUILayout.value = DynamicUiState.Error(e.message ?: "Unknown error")
             }
         }
     }
@@ -79,10 +76,7 @@ class DynamicViewModel @Inject constructor(
 
     }
     private fun updateComponentState(layoutId: String, path: String, value: Any?) {
-        //componentState[layoutId +componentId] = value
         componentGlobalState.value["$layoutId.$path"] = AnySerializable(value)
-        //componentGlobalState.value["$layoutId.usage.data"] = AnySerializable(value)
-        //triggerRecomposition(value)
     }
 
     fun getComponentPropertyPath(path: String): String{
@@ -90,8 +84,8 @@ class DynamicViewModel @Inject constructor(
     }
 
     fun getRootComponent(): Component {
-        if (_state.value is DynamicUiState.Success) {
-            return (_state.value as DynamicUiState.Success).component
+        if (_dynamicUILayout.value is DynamicUiState.Success) {
+            return (_dynamicUILayout.value as DynamicUiState.Success).component
         } else {
             throw IllegalStateException("Root component not available")
         }
@@ -117,15 +111,15 @@ class DynamicViewModel @Inject constructor(
     private fun triggerRecomposition(value: Any?) {
         viewModelScope.launch {
             try {
-                val currentState = _state.value
+                val currentState = _dynamicUILayout.value
                 if (currentState is DynamicUiState.Success) {
                     val newComponent = currentState.component.deepCopy()
                     // Below is the dummy property added to trigger a recomposition
                     newComponent.properties.put("a", AnySerializable(value))
-                    _state.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
+                    _dynamicUILayout.value = DynamicUiState.Success(newComponent, currentState.canGoBack)
                 }
             } catch (e: Exception) {
-                _state.value = DynamicUiState.Error(e.message ?: "Unknown error")
+                _dynamicUILayout.value = DynamicUiState.Error(e.message ?: "Unknown error")
             }
         }
     }
