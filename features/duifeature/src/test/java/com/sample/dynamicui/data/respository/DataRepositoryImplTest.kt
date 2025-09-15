@@ -22,8 +22,8 @@ class DataRepositoryImplTest {
             awaitComplete()
 
             // Replace with actual expected values based on AnySerializable implementation
-            assertEquals(AnySerializable(repository.usage), first)
-            assertEquals(AnySerializable(repository.selection), second)
+            assertEquals(repository.usage, first)
+            assertEquals(repository.selection, second)
         }
     }
 }
