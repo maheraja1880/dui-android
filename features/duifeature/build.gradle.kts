@@ -94,6 +94,7 @@ dependencies {
     implementation("io.ktor:ktor-client-mock:3.2.3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("app.cash.turbine:turbine:1.2.1")
 
 
 }

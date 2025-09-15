@@ -95,9 +95,9 @@ fun DynamicUIScreen(
 }
 
 @Composable
-fun DynamicComponent(layoutId: String, component: Component,  vm: DynamicViewModel) {
+fun DynamicComponent(layoutId: String, component: Component, vm: DynamicViewModel) {
     Log.d("DynamicComponent", "DynamicComponent - Rendering component: ${component.id}")
-    when (component.type) {
+    when (component.type ) {
         "text" -> vm.getComponentState(layoutId, component.properties["text"] ?.asString()?: "EMPTY TEXT").asString()
             ?.let {
                 Text(
@@ -157,6 +157,7 @@ fun DynamicComponent(layoutId: String, component: Component,  vm: DynamicViewMod
             //var value by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
             val statePath = vm.getComponentPropertyPath(component.properties["value"] ?.asString()?: "EMPTY TEXT")
             var value by remember { mutableStateOf(vm.getComponentState(layoutId, component.properties["value"] ?.asString()?: "EMPTY TEXT").asString()) }
+            //var value = vm.getComponentState(layoutId, component.properties["value"] ?.asString()?: "EMPTY TEXT").asString()
 
             TextField(
                 value = value?: "EMPTY",
@@ -181,6 +182,7 @@ fun DynamicComponent(layoutId: String, component: Component,  vm: DynamicViewMod
             //Log.d("DynamicComponent", "Rendering singleSelect component: ${component.id} with options $options")
             val statePath = vm.getComponentPropertyPath(component.properties["selected"] ?.asString()?: "EMPTY PATH OR VALUE")
             var selected by remember { mutableStateOf(vm.getComponentState(layoutId, component.properties["selected"] ?.asString()?: "EMPTY TEXT").asString()) }
+            //var selected = vm.getComponentState(layoutId, component.properties["selected"] ?.asString()?: "EMPTY TEXT").asString()
             //var selected by remember { mutableStateOf(component.properties["value"]?.asString() ?: "") }
             var expanded by remember { mutableStateOf(false) }
            Box {
@@ -225,6 +227,7 @@ fun DynamicComponent(layoutId: String, component: Component,  vm: DynamicViewMod
             val statePath = vm.getComponentPropertyPath(component.properties["selected"] ?.asString()?: "EMPTY PATH OR VALUE")
             //var selected by remember { mutableStateOf(component.properties["value"]?.asList()?: emptyList<AnySerializable>()) }
             var selected by remember { mutableStateOf(vm.getComponentState(layoutId, component.properties["selected"] ?.asString()?: "EMPTY TEXT").asList()) }
+            //var selected = vm.getComponentState(layoutId, component.properties["selected"] ?.asString()?: "EMPTY TEXT").asList()
 
             Column {
                 options.forEach { it ->
@@ -246,6 +249,48 @@ fun DynamicComponent(layoutId: String, component: Component,  vm: DynamicViewMod
                 }
             }
         }
+        "_if" -> {
+            var elseChild : Component? = null
+            var thenChild: Component? = null
+            component.children.forEach { child ->
+                if (child.type == "_then")
+                    thenChild = child
+                else
+                    elseChild = child
+            }
+            val condition = component.properties["condition"]?.asMap()
+            val conditionResult = handleConditionAction(condition, layoutId, component, vm)
+            when (conditionResult) {
+                "PASS" -> {
+                    thenChild?.children?.forEach { child ->
+                        DynamicComponent(layoutId,child,  vm)
+                    }
+                }
+                "FAIL" -> {
+                    elseChild?.children?.forEach { child ->
+                        DynamicComponent(layoutId,child,  vm)
+                    }
+                }
+            }
+        }
+        "_else" -> {
+            //DO Nothing
+        }
         else -> Text("Unsupported component: ${component.type}")
     }
+
+}
+
+fun handleConditionAction(condition: Map<String, AnySerializable>?, layoutId: String, component: Component, vm: DynamicViewModel): String {
+    val conditionType = condition?.get("type")?.asString()
+    val conditionProperties = condition?.get("properties")?.asMap()
+
+    if (conditionType == "getState") {
+        val fromPath = conditionProperties?.get("fromPath")?.asString()?: "property 'fromPath' expected for getState action "
+        val conditionResult = vm.getComponentState(layoutId,fromPath).asString()
+        return if (conditionResult?.startsWith("NO STATE FOR PATH") == true)  "FAIL" else "PASS"
+    } else {
+        throw IllegalArgumentException("Unsupported condition type: $conditionType")
+    }
+
 }

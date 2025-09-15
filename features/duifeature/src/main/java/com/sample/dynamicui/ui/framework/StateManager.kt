@@ -23,21 +23,46 @@ class StateManager {
         val result = mutableMapOf<String, AnySerializable>()
         val stateObj = component.properties["state"]
         if (stateObj is AnySerializable && stateObj.asMap()?.isNotEmpty()?: false) {
-            fun flatten(prefix: String, stateValue: AnySerializable) {
-                for ((key, value) in stateValue.asMap() ?: emptyMap<String, Any?>()) {
-                    val newKey = if (prefix.isEmpty()) "$key" else "$prefix.$key"
-                    if (value is AnySerializable && value.asMap()?.isNotEmpty()?: false) {
-                        flatten(newKey, value)
-                    } else {
-                        result[newKey] = (value ?: "") as AnySerializable
-                    }
-                }
-            }
-            flatten(layoutId, stateObj)
+            flattenState(layoutId, stateObj, result)
         }
         println("Extracted State: $result")
         return result
     }
+
+    fun flattenState(
+        prefix: String,
+        stateValue: AnySerializable,
+        result: MutableMap<String, AnySerializable>
+    ) {
+        for ((key, value) in stateValue.asMap() ?: emptyMap<String, Any?>()) {
+            val newKey = if (prefix.isEmpty()) "$key" else "$prefix.$key"
+            if (value is AnySerializable && value.asMap()?.isNotEmpty() == true) {
+                flattenState(newKey, value, result)
+            } else {
+                result[newKey] = (value ?: "") as AnySerializable
+            }
+        }
+    }
+
+//    fun updateState(component: Component, statePath: String, value: Any?) {
+//        val stateObj = component.properties["state"]
+//        if (stateObj is AnySerializable) {
+//            fun update(stateValue: AnySerializable, path: List<String>) {
+//                if (path.isEmpty()) {
+//                    stateValue.set(value)
+//                } else {
+//                    val key = path[0]
+//                    val nestedState = stateValue.asMap()?.get(key)
+//                    if (nestedState is AnySerializable) {
+//                        update(nestedState, path.subList(1, path.size))
+//                    }
+//                }
+//                }
+//                update(stateObj, statePath.split("."))
+//            } else {
+//                Log.e("StateManager", "Invalid state object: $stateObj")
+//        }
+//    }
 
     @Suppress("UNCHECKED_CAST")
     fun <T> getComponentState(componentId: String, clazz: Class<T>): T? {

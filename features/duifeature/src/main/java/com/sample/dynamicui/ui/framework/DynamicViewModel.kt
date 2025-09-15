@@ -1,11 +1,13 @@
 package com.sample.dynamicui.ui.framework
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.dynamicui.domain.model.Action
 import com.sample.dynamicui.domain.model.AnySerializable
 import com.sample.dynamicui.domain.model.Component
 import com.sample.dynamicui.domain.model.Interaction
+import com.sample.dynamicui.domain.usecase.GetData
 import com.sample.dynamicui.domain.usecase.GetLayout
 import com.sample.dynamicui.ui.actions.executeNavigateAction
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,12 +16,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import java.util.Stack
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class DynamicViewModel @Inject constructor(
-    private val getLayout: GetLayout
+    private val getLayout: GetLayout,
+    private val getData: GetData
 ) : ViewModel() {
 
     private val _dynamicUILayout = MutableStateFlow<DynamicUiState>(DynamicUiState.Loading)
@@ -47,13 +52,44 @@ class DynamicViewModel @Inject constructor(
 
     private fun loadLayout(layoutId: String, push: Boolean) {
         _dynamicUILayout.value = DynamicUiState.Loading
+        getLayout(layoutId, push)
+        getLayoutData(layoutId, push)
+    }
+
+    private fun getLayoutData(layoutId: String, push: Boolean) {
+        if (!push) {
+            // Not required to fetch as screen is navigating back
+            return
+        }
+        viewModelScope.launch {
+            try {
+                getData(layoutId).collect { data ->
+                    Log.d("DynamicViewModel", "Received data: $data")
+                    val newState = mutableMapOf<String, AnySerializable>()
+                    stateManager.flattenState(
+                        layoutId,
+                        Json.decodeFromString(AnySerializable.serializer(), data),
+                        newState
+                    )
+                    _componentGlobalState.value =
+                        (_componentGlobalState.value.toMutableMap().apply { putAll(newState) })
+                    triggerRecomposition(Random(100))
+                }
+            } catch (e: Exception) {
+                Log.e("DynamicViewModel", "Error fetching data: ${e.message}")
+            }
+        }
+    }
+
+    private fun getLayout(layoutId: String, push: Boolean) {
         viewModelScope.launch {
             try {
                 val component = getLayout(layoutId)
                 restoreComponentState(layoutId, component)
                 //componentGlobalState = stateManager.extractState(layoutId, component)
                 if (push) backStack.push(layoutId)
-                _dynamicUILayout.value = DynamicUiState.Success(component, canGoBack = backStack.size > 1)
+                _dynamicUILayout.value =
+                    DynamicUiState.Success(component, canGoBack = backStack.size > 1)
             } catch (e: Exception) {
                 _dynamicUILayout.value = DynamicUiState.Error(e.message ?: "Unknown error")
             }
@@ -77,6 +113,7 @@ class DynamicViewModel @Inject constructor(
     }
     private fun updateComponentState(layoutId: String, path: String, value: Any?) {
         componentGlobalState.value["$layoutId.$path"] = AnySerializable(value)
+        //stateManager.updateState(getRootComponent(), path, value)
     }
 
     fun getComponentPropertyPath(path: String): String{

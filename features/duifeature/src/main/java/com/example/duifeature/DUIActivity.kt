@@ -23,6 +23,7 @@ import com.sample.dynamicui.ui.framework.DynamicUiIntent
 import com.sample.dynamicui.ui.framework.DynamicUiState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.sample.dynamicui.ui.framework.DynamicUIScreen2
 
 @AndroidEntryPoint
 class DUIActivity : ComponentActivity() {
@@ -52,6 +53,11 @@ class DUIActivity : ComponentActivity() {
                 }
             ) { innerPadding ->
                 DynamicUIScreen(
+                    layoutId = layoutId,
+                    modifier = Modifier.padding(innerPadding),
+                    vm = vm
+                )
+                DynamicUIScreen2(
                     layoutId = layoutId,
                     modifier = Modifier.padding(innerPadding),
                     vm = vm

@@ -49,29 +49,83 @@ val serverContents = """
 {
     "id": "server-container",
     "type": "container",
-    "properties": 
-    {
-        "state": {
-            "usage": {
-                "data" : "20GB",
-                "used" : "10GB",
-                "free" : "10GB",
-                "total" : "30GB"
-            },
-            "selection" : {
-                "name": "your name",
-                "prefix": {
-                    "selected": "Mr.",
-                    "options": ["Mr.", "Ms.", "Mrs."]
-                },
-                "topics": {
-                    "selected": ["topic1", "topic2"],
-                    "options": ["topic1", "topic2", "topic3"]
-                }
-            }
-        }        
-    },
     "children": [
+        {
+            "id": "condition",
+            "type": "_if",
+            "properties": {
+                "condition": {
+                    "type": "getState",
+                    "properties": {
+                        "fromPath": "@@selection.name"
+                    }
+                }
+            },           
+            "children": [
+                {
+                    "id": "then",
+                    "type": "_then",
+                    "children": [
+                        {
+                            "id": "title4",
+                            "type": "card",
+                            "children": [
+                                {
+                                    "id": "textInputTitle",
+                                    "type": "textInput",
+                                    "properties": {
+                                        "value": "@@selection.name",
+                                        "label": "Label here"
+                                    },
+                                    "onInteraction": [
+                                        {
+                                          "event": "onValueChange",
+                                          "action": [
+                                            {
+                                              "type": "setState",
+                                              "properties": {
+                                                "toPath": "@@usage.data",
+                                                "fromPath": "@@selection.name"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                    ]
+                                },
+                                {
+                                  "id": "dropdownTitle",
+                                  "type": "singleSelect",
+                                  "properties": {
+                                    "options": "@@selection.prefix.options",
+                                    "label": "Select a prefix",
+                                    "selected": "@@selection.prefix.selected"
+                                  }
+                                },
+                                {
+                                  "id": "mulitselectTitle",
+                                  "type": "multiSelect",
+                                  "properties": {
+                                    "options": "@@selection.topics.options",
+                                    "label": "Label here",
+                                    "selected": "@@selection.topics.selected"
+                                  }
+                                }                
+                            ]
+                        }                   
+                    ]
+                },
+                {
+                    "id": "else",
+                    "type": "_else",
+                    "children": [
+                        {
+                            "id": "title3",
+                            "type": "shimmer"
+                        }
+                    ]
+                }
+            ]
+        },
         {
             "id": "title",
             "type": "text",
@@ -93,48 +147,6 @@ val serverContents = """
                 "text": "@@usage.free"
             }
         },
-        {
-            "id": "textInputTitle",
-            "type": "textInput",
-            "properties": {
-                "value": "@@selection.name",
-                "label": "Label here"
-            },
-            "onInteraction": [
-                {
-                  "event": "onValueChange",
-                  "action": [
-                    {
-                      "type": "setState",
-                      "properties": {
-                        "toPath": "@@usage.data",
-                        "fromPath": "@@selection.name"
-                      }
-                    }
-                  ]
-                }
-            ]
-        },
-        {
-          "id": "dropdownTitle",
-          "type": "singleSelect",
-          "properties": {
-            "options": "@@selection.prefix.options",
-            "label": "Select a prefix",
-            "selected": "@@selection.prefix.selected"
-          }
-        },
-        {
-          "id": "mulitselectTitle",
-          "type": "multiSelect",
-          "properties": {
-            "options": "@@selection.topics.options",
-            "label": "Label here",
-            "selected": "@@selection.topics.selected"
-          }
-        },
-        
-        
         {
             "id": "button1",
             "type": "button",
