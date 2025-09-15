@@ -57,6 +57,63 @@ val serverContents = """
                 "condition": {
                     "type": "getState",
                     "properties": {
+                        "fromPath": "@@usage.data"
+                    }
+                }
+            },           
+            "children": [
+                {
+                    "id": "then",
+                    "type": "_then",
+                    "children": [
+                        {
+                            "id": "title",
+                            "type": "card",
+                            "children": [
+                                {
+                                    "id": "title",
+                                    "type": "text",
+                                    "properties": {
+                                        "text": "@@usage.data"
+                                    }
+                                },
+                                {
+                                    "id": "title2",
+                                    "type": "text",
+                                    "properties": {
+                                        "text": "@@usage.used"
+                                    }
+                                },
+                                {
+                                    "id": "title3",
+                                    "type": "text",
+                                    "properties": {
+                                        "text": "@@usage.free"
+                                    }
+                                }                             
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "else",
+                    "type": "_else",
+                    "children": [
+                        {
+                            "id": "title3",
+                            "type": "shimmer"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "condition",
+            "type": "_if",
+            "properties": {
+                "condition": {
+                    "type": "getState",
+                    "properties": {
                         "fromPath": "@@selection.name"
                     }
                 }
@@ -125,27 +182,6 @@ val serverContents = """
                     ]
                 }
             ]
-        },
-        {
-            "id": "title",
-            "type": "text",
-            "properties": {
-                "text": "@@usage.data"
-            }
-        },
-        {
-            "id": "title2",
-            "type": "text",
-            "properties": {
-                "text": "@@usage.used"
-            }
-        },
-        {
-            "id": "title3",
-            "type": "text",
-            "properties": {
-                "text": "@@usage.free"
-            }
         },
         {
             "id": "button1",
