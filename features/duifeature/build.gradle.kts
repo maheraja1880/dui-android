@@ -88,10 +88,13 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlin.metadata.jvm)
+    implementation(libs.androidx.accompanist)
+    implementation("com.google.accompanist:accompanist-placeholder-material:0.36.0")
 
     implementation("io.ktor:ktor-client-mock:3.2.3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("app.cash.turbine:turbine:1.2.1")
 
 
 }

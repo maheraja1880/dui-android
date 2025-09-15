@@ -1,17 +1,14 @@
 package com.sample.dynamicui.data.respository
 
 import android.util.Log
-import com.sample.dynamicui.data.repository.DynamicRepositoryImpl
+import com.sample.dynamicui.data.repository.LayoutRepositoryImpl
 import com.sample.dynamicui.domain.model.Action
 import com.sample.dynamicui.domain.model.AnySerializable
-import com.sample.dynamicui.domain.model.Component
 import com.sample.dynamicui.domain.model.Interaction
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
 import io.ktor.http.ContentType
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
@@ -59,7 +56,7 @@ class DynamicRepositoryImplTest {
             }
         }
 
-        val repo = DynamicRepositoryImpl("http://test", client)
+        val repo = LayoutRepositoryImpl("http://test", client)
 
         val component = repo.fetchLayout("home")
 
@@ -110,7 +107,7 @@ class DynamicRepositoryImplTest {
             }
         }
 
-        val repo = DynamicRepositoryImpl("http://test", client)
+        val repo = LayoutRepositoryImpl("http://test", client)
 
         val component = repo.fetchLayout("profile")
 

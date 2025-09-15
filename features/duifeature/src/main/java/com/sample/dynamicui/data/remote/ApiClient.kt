@@ -35,7 +35,8 @@ object ApiClient {
         val layoutJsonMap = mapOf(
             "home" to home,
             "profile" to profile,
-            "settings" to settings
+            "settings" to settings,
+            "server-contents" to serverContents
         )
         val jsonString = layoutJsonMap[layoutId]
             ?: throw IllegalArgumentException("No mock layout found for id: $layoutId")
@@ -43,6 +44,168 @@ object ApiClient {
         return jsonString
     }
 }
+
+val serverContents = """
+{
+    "id": "server-container",
+    "type": "container",
+    "children": [
+        {
+            "id": "condition",
+            "type": "_if",
+            "properties": {
+                "condition": {
+                    "type": "getState",
+                    "properties": {
+                        "fromPath": "@@usage.data"
+                    }
+                }
+            },           
+            "children": [
+                {
+                    "id": "then",
+                    "type": "_then",
+                    "children": [
+                        {
+                            "id": "title",
+                            "type": "card",
+                            "children": [
+                                {
+                                    "id": "title",
+                                    "type": "text",
+                                    "properties": {
+                                        "text": "@@usage.data"
+                                    }
+                                },
+                                {
+                                    "id": "title2",
+                                    "type": "text",
+                                    "properties": {
+                                        "text": "@@usage.used"
+                                    }
+                                },
+                                {
+                                    "id": "title3",
+                                    "type": "text",
+                                    "properties": {
+                                        "text": "@@usage.free"
+                                    }
+                                }                             
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "else",
+                    "type": "_else",
+                    "children": [
+                        {
+                            "id": "title3",
+                            "type": "shimmer"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "condition",
+            "type": "_if",
+            "properties": {
+                "condition": {
+                    "type": "getState",
+                    "properties": {
+                        "fromPath": "@@selection.name"
+                    }
+                }
+            },           
+            "children": [
+                {
+                    "id": "then",
+                    "type": "_then",
+                    "children": [
+                        {
+                            "id": "title4",
+                            "type": "card",
+                            "children": [
+                                {
+                                    "id": "textInputTitle",
+                                    "type": "textInput",
+                                    "properties": {
+                                        "value": "@@selection.name",
+                                        "label": "Label here"
+                                    },
+                                    "onInteraction": [
+                                        {
+                                          "event": "onValueChange",
+                                          "action": [
+                                            {
+                                              "type": "setState",
+                                              "properties": {
+                                                "toPath": "@@usage.data",
+                                                "fromPath": "@@selection.name"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                    ]
+                                },
+                                {
+                                  "id": "dropdownTitle",
+                                  "type": "singleSelect",
+                                  "properties": {
+                                    "options": "@@selection.prefix.options",
+                                    "label": "Select a prefix",
+                                    "selected": "@@selection.prefix.selected"
+                                  }
+                                },
+                                {
+                                  "id": "mulitselectTitle",
+                                  "type": "multiSelect",
+                                  "properties": {
+                                    "options": "@@selection.topics.options",
+                                    "label": "Label here",
+                                    "selected": "@@selection.topics.selected"
+                                  }
+                                }                
+                            ]
+                        }                   
+                    ]
+                },
+                {
+                    "id": "else",
+                    "type": "_else",
+                    "children": [
+                        {
+                            "id": "title3",
+                            "type": "shimmer"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "button1",
+            "type": "button",
+            "properties": {
+                "text": "Click Me"
+            },
+            "onInteraction": [
+            {
+              "event": "onClick",
+              "action": [
+                {
+                  "type": "navigate",
+                  "properties": {
+                    "target": "profile"
+                  }
+                }
+              ]
+            }
+            ]
+        }
+    ]
+}
+""".trimIndent()
 
 val settings = """
 {
